@@ -1,0 +1,20 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: hyperlocal
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: localpass123
+    ports:
+      - '5433:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d
+  valkey:
+    image: valkey/valkey:7
+    ports:
+      - '6379:6379'
+
+volumes:
+  pgdata:
