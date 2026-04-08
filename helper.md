@@ -1,73 +1,82 @@
-# Hyperlocal Instagram-First E-Commerce Platform
+# Developer Guide & Setup Instructions 🛠️
 
-Welcome to our project! 🚀 
+Welcome to the development team! This guide acts as your master checklist to help you spin up the whole project stack locally from scratch in just a couple of minutes.
 
-This is the backend and database setup for our hyperlocal e-commerce platform. We're keeping things simple, so we are using **Docker** to run everything we need (PostgreSQL database + Valkey/Redis cache) so that you don't have to install complex database software locally.
+## 1. Prerequisites
 
-## Prerequisites
-As a developer on this project, you only need to install a few things:
-1. **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** - This is mandatory to run the database. *After installing, make sure to open the Docker Desktop app so it's running in the background!*
-2. **Git** - To pull and push the code.
-3. A Database Viewer like **[DBeaver](https://dbeaver.io/)** or the **VS Code Database Client extension** (optional but highly recommended so you can actually see the tables).
-
----
-
-## 🛠️ Step 1: Getting Started
-
-Once you've cloned the repository and opened this folder in VS Code, open your terminal (Ctrl+` or Cmd+`) and copy-paste this command:
-
-```bash
-docker compose up -d
-```
-
-**What does this do?**
-- It starts the PostgreSQL and Valkey containers in the background (that's what the `-d` means).
-- Because of our setup, it reads `db/01_schema.sql` automatically the very first time it starts. This means **all our tables (orders, products, customers etc.) are created for you instantly!** You literally don't have to do any manual setup.
+Before you do anything, ensure you have the following installed on your machine:
+- **[Docker Desktop](https://www.docker.com/products/docker-desktop/)**: Mandatory for running our database and cache isolated from your machine. Ensure the Docker desktop app is actually running in the background.
+- **[Node.js (LTS)](https://nodejs.org/)**: To run the backend Express server.
+- **Git**: For pulling/pushing code.
+- **A Database Viewer**: E.g., [DBeaver](https://dbeaver.io/) (or simply use the VS Code database extension) to easily browse and view our PostgreSQL tables.
 
 ---
 
-## 🔍 Step 2: Connect to the Database
+## 2. Booting the Database 🐳
 
-To actually look at the tables and the data inside them, open your DB Viewer (like DBeaver) and create a new PostgreSQL connection with these details:
+We use Docker to avoid messy local PostgreSQL installations. Our setup will automatically read the `.sql` files in the directory and initialize all tables.
 
-- **Host/Server:** `localhost`
-- **Port:** `5433` *(Note: It's 5433, not the default 5432! We changed it to avoid conflicts).*
-- **Database Name:** `hyperlocal`
+1. Open your terminal at the root of the project.
+2. Run the following command:
+   ```bash
+   docker compose up -d
+   ```
+3. Docker will pull PostgreSQL and Valkey. The first time it runs, it executes `db/01_schema.sql` and generates all our tables for you in the background.
+
+### 🔍 Connecting to the Database
+To view the raw tables safely, use your DB Viewer to connect using these details:
+- **Host:** `localhost`
+- **Port:** `5433` *(Note: We use 5433 locally to prevent conflicts with standard local Postgres installations!)*
+- **Database:** `hyperlocal`
 - **Username:** `admin`
 - **Password:** `localpass123`
 
-When you connect, look under `Schemas > public > Tables`. You should see about 18 tables waiting for you!
+---
+
+## 3. Starting the Backend Server 🟢
+
+The main API runs on Express.js. 
+
+1. Open your terminal and change into the backend folder:
+   ```bash
+   cd backend
+   ```
+2. Install all the necessary packages:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables. Create a `.env` file exactly inside the `backend/` folder and paste the following baseline config:
+   ```env
+   PORT=4000
+   DATABASE_URL=postgresql://admin:localpass123@localhost:5433/hyperlocal
+   VALKEY_URL=redis://localhost:6379
+   JWT_SECRET=change_this_to_a_random_string_in_production
+   NODE_ENV=development
+   ```
+4. Start the development server (which uses `nodemon`, so it auto-restarts on code changes):
+   ```bash
+   npm run dev
+   ```
+5. Verify it's working! Open your browser and go to `http://localhost:4000/health`. You should see `{"status":"ok"}`.
 
 ---
 
-## 🗑️ Step 3: How to Reset Everything
+## 4. Useful Commands Cheatsheet 📄
 
-Messed up the data? Testing something and want to clear the database to start fresh? It's super easy. 
-
-**Run this command to completely delete the database:**
-
-```bash
-docker compose down -v
-```
-
-Then bring it back up:
-
-```bash
-docker compose up -d
-```
-
-*(The `-v` in that command is super important. It tells Docker to delete the saved data volume. When you start it back up, Docker realizes the database is empty and will happily re-run `db/01_schema.sql` for you, giving you a brand-new, clean database).*
-
----
-
-## 📄 Useful Commands Cheatsheet
-
-| What you want to do | Command |
+### Docker / Database Commands (Run in project root)
+| Command | Action |
 | --- | --- |
-| Start the database | `docker compose up -d` |
-| Stop the database | `docker compose down` |
-| Stop AND Delete everything (reset) | `docker compose down -v` |
-| See if the containers are running | `docker compose ps` |
-| Check database logs for errors | `docker compose logs postgres` |
+| `docker compose up -d` | Start the DB/Cache containers in the background |
+| `docker compose down` | Stop the containers safely |
+| `docker compose down -v` | **HARD RESET:** Stops and deletes the database volume entirely. Extremely useful if you tweaked schema logic and want a completely fresh start! |
+| `docker compose ps` | Check if your containers are physically running |
+| `docker compose logs postgres` | View database logs, specifically if you encounter startup schema errors |
 
-Happy Coding! 💻 Let's build this!
+### Node Commands (Run in `/backend`)
+| Command | Action |
+| --- | --- |
+| `npm install` | Install new packages whenever package.json updates |
+| `npm run dev` | Start the Express server for local development |
+| `npm start` | Start the Express server for production |
+
+Enjoy, and happy coding! 🚀
