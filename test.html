@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Products API Tester</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { margin-top: 0; }
+    .card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    input, button, textarea {
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e2e8f0;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+    button {
+      cursor: pointer;
+      background: #1d4ed8;
+      border: none;
+    }
+    button.secondary { background: #334155; }
+    .mono { font-family: Consolas, Menlo, Monaco, monospace; }
+    .small { font-size: 12px; color: #94a3b8; }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 120px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Admin Products & Inventory Tester</h1>
+  <p class="small">Use this page to run the full API flow without Postman.</p>
+
+  <div class="card">
+    <h3>Config</h3>
+    <div class="row"><label>Base URL</label><input id="baseUrl" value="http://localhost:4000" /></div>
+    <div class="row"><label>Username</label><input id="username" value="superadmin" /></div>
+    <div class="row"><label>Password</label><input id="password" type="password" value="admin123" /></div>
+    <div class="row"><label>Category ID</label><input id="categoryId" value="1" /></div>
+  </div>
+
+  <div class="card">
+    <h3>State</h3>
+    <div class="row"><label>Access Token</label><input id="token" class="mono" placeholder="Auto-filled after login" /></div>
+    <div class="row"><label>Product ID</label><input id="productId" class="mono" placeholder="Auto-filled after product creation" /></div>
+    <div class="row"><label>Variant ID</label><input id="variantId" class="mono" placeholder="Auto-filled after variant creation" /></div>
+  </div>
+
+  <div class="card">
+    <h3>1) Login</h3>
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div class="card">
+    <h3>2) Create Product (JSON, no image)</h3>
+    <button onclick="createProductNoImage()">Create Product (No Image)</button>
+  </div>
+
+  <div class="card">
+    <h3>3) Create Product (form-data + image)</h3>
+    <div class="row"><label>Image</label><input id="createImage" type="file" accept="image/*" /></div>
+    <button onclick="createProductWithImage()">Create Product (With Image)</button>
+  </div>
+
+  <div class="card">
+    <h3>4) Add Variant</h3>
+    <div class="row"><label>Size</label><input id="size" value="L" /></div>
+    <div class="row"><label>Colour</label><input id="colour" value="Black" /></div>
+    <div class="row"><label>SKU</label><input id="sku" value="TEST-SKU-001" /></div>
+    <div class="row"><label>Price Paise</label><input id="variantPrice" value="129900" /></div>
+    <button onclick="addVariant()">Add Variant</button>
+  </div>
+
+  <div class="card">
+    <h3>5) Restock Inventory</h3>
+    <div class="row"><label>Quantity To Add</label><input id="qty" value="50" /></div>
+    <button onclick="restock()">Restock</button>
+  </div>
+
+  <div class="card">
+    <h3>6) Toggle Product Active</h3>
+    <button onclick="toggleProduct()">Toggle Product</button>
+  </div>
+
+  <div class="card">
+    <h3>7) Update Product + New Image</h3>
+    <div class="row"><label>New Description</label><input id="newDesc" value="Updated from test.html" /></div>
+    <div class="row"><label>Image</label><input id="updateImage" type="file" accept="image/*" /></div>
+    <button onclick="updateProductWithImage()">Update Product + Image</button>
+  </div>
+
+  <div class="card">
+    <h3>Run Entire Flow</h3>
+    <button onclick="runAll()">Run 1 → 7</button>
+    <button class="secondary" onclick="clearLog()">Clear Log</button>
+  </div>
+
+  <div class="card">
+    <h3>Response Log</h3>
+    <pre id="log"></pre>
+  </div>
+
+  <script>
+    const logEl = document.getElementById('log');
+
+    function log(title, data) {
+      const content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      logEl.textContent += `[${new Date().toLocaleTimeString()}] ${title}\n${content}\n\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function clearLog() {
+      logEl.textContent = '';
+    }
+
+    function getBase() { return document.getElementById('baseUrl').value.trim(); }
+    function getToken() { return document.getElementById('token').value.trim(); }
+
+    async function request(url, options) {
+      const res = await fetch(url, options);
+      const text = await res.text();
+      let body;
+      try { body = JSON.parse(text); } catch { body = text; }
+      if (!res.ok) throw { status: res.status, body };
+      return body;
+    }
+
+    function randomSlug(prefix) {
+      return `${prefix}-${Date.now()}`;
+    }
+
+    async function login() {
+      try {
+        const body = await request(`${getBase()}/admin/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('username').value.trim(),
+            password: document.getElementById('password').value
+          })
+        });
+        document.getElementById('token').value = body.accessToken || '';
+        log('Login success', body);
+      } catch (err) {
+        log('Login failed', err);
+      }
+    }
+
+    async function createProductNoImage() {
+      try {
+        const body = await request(`${getBase()}/admin/products`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: 'HTML Test Hoodie',
+            slug: randomSlug('html-test-hoodie'),
+            description: 'Created via test.html without image',
+            base_price_paise: 129900,
+            category_id: Number(document.getElementById('categoryId').value)
+          })
+        });
+        if (body?.data?.id) document.getElementById('productId').value = body.data.id;
+        log('Create product (no image) success', body);
+      } catch (err) {
+        log('Create product (no image) failed', err);
+      }
+    }
+
+    async function createProductWithImage() {
+      try {
+        const file = document.getElementById('createImage').files[0];
+        if (!file) return log('Create product (with image) failed', 'Pick an image first.');
+
+        const fd = new FormData();
+        fd.append('name', 'HTML Test Tee');
+        fd.append('slug', randomSlug('html-test-tee'));
+        fd.append('description', 'Created via test.html with image');
+        fd.append('base_price_paise', '79900');
+        fd.append('category_id', document.getElementById('categoryId').value);
+        fd.append('image', file);
+
+        const body = await request(`${getBase()}/admin/products`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${getToken()}` },
+          body: fd
+        });
+
+        if (body?.data?.id) document.getElementById('productId').value = body.data.id;
+        log('Create product (with image) success', body);
+      } catch (err) {
+        log('Create product (with image) failed', err);
+      }
+    }
+
+    async function addVariant() {
+      try {
+        const productId = document.getElementById('productId').value.trim();
+        if (!productId) return log('Add variant failed', 'Set productId first.');
+
+        const body = await request(`${getBase()}/admin/products/${productId}/variants`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            size: document.getElementById('size').value,
+            colour: document.getElementById('colour').value,
+            sku: `${document.getElementById('sku').value}-${Date.now()}`,
+            price_paise: Number(document.getElementById('variantPrice').value)
+          })
+        });
+
+        if (body?.data?.id) document.getElementById('variantId').value = body.data.id;
+        log('Add variant success', body);
+      } catch (err) {
+        log('Add variant failed', err);
+      }
+    }
+
+    async function restock() {
+      try {
+        const variantId = document.getElementById('variantId').value.trim();
+        if (!variantId) return log('Restock failed', 'Set variantId first.');
+
+        const body = await request(`${getBase()}/admin/inventory/${variantId}/restock`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            quantity_to_add: Number(document.getElementById('qty').value)
+          })
+        });
+        log('Restock success', body);
+      } catch (err) {
+        log('Restock failed', err);
+      }
+    }
+
+    async function toggleProduct() {
+      try {
+        const productId = document.getElementById('productId').value.trim();
+        if (!productId) return log('Toggle failed', 'Set productId first.');
+
+        const body = await request(`${getBase()}/admin/products/${productId}/toggle`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        log('Toggle success', body);
+      } catch (err) {
+        log('Toggle failed', err);
+      }
+    }
+
+    async function updateProductWithImage() {
+      try {
+        const productId = document.getElementById('productId').value.trim();
+        if (!productId) return log('Update failed', 'Set productId first.');
+
+        const file = document.getElementById('updateImage').files[0];
+        if (!file) return log('Update failed', 'Pick an update image first.');
+
+        const fd = new FormData();
+        fd.append('description', document.getElementById('newDesc').value);
+        fd.append('image', file);
+
+        const body = await request(`${getBase()}/admin/products/${productId}`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${getToken()}` },
+          body: fd
+        });
+        log('Update product + image success', body);
+      } catch (err) {
+        log('Update product + image failed', err);
+      }
+    }
+
+    async function runAll() {
+      await login();
+      await createProductNoImage();
+      await addVariant();
+      await restock();
+      await toggleProduct();
+      log('Run all', 'Complete. Use create/update image buttons for file uploads.');
+    }
+  </script>
+</body>
+</html>
