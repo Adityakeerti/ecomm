@@ -3,6 +3,8 @@ const router = express.Router();
 const adminOverviewController = require('../controllers/adminOverviewController');
 const adminOrdersController = require('../controllers/adminOrdersController');
 const adminProductsController = require('../controllers/adminProductsController');
+const adminDispatchController = require('../controllers/adminDispatchController');
+const adminReturnsController = require('../controllers/adminReturnsController');
 const adminOperationsController = require('../controllers/adminOperationsController');
 const upload = require('../middleware/upload');
 
@@ -24,6 +26,15 @@ router.post('/products/:id/variants', adminProductsController.addVariant);
 
 // Inventory
 router.patch('/inventory/:variantId/restock', adminProductsController.restockInventory);
+
+// Dispatch
+router.get('/dispatch/ready', adminDispatchController.getDispatchReady);
+router.post('/dispatch/batches/:id/assign', adminDispatchController.assignBatch);
+router.post('/dispatch/batches/:id/dispatch', adminDispatchController.dispatchBatch);
+
+// Returns
+router.get('/returns', adminReturnsController.listReturns);
+router.patch('/returns/:id', adminReturnsController.updateReturn);
 
 // Zones
 router.get('/zones', adminOperationsController.listZones);
