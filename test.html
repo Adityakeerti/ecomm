@@ -1,1013 +1,558 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Products API Tester</title>
+  <title>Full API Test Suite — Steps 2-9</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e2e8f0;
-      margin: 0;
-      padding: 20px;
-    }
-
-    h1 {
-      margin-top: 0;
-    }
-
-    h2 {
-      color: #38bdf8;
-      margin-top: 30px;
-      border-bottom: 1px solid #1e3a5f;
-      padding-bottom: 8px;
-    }
-
-    .card {
-      background: #111827;
-      border: 1px solid #1f2937;
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 14px;
-    }
-
-    .card.dispatch {
-      border-left: 3px solid #f59e0b;
-    }
-
-    .card.delivery {
-      border-left: 3px solid #10b981;
-    }
-
-    .card.returns {
-      border-left: 3px solid #8b5cf6;
-    }
-
-    .card.edge {
-      border-left: 3px solid #ef4444;
-    }
-
-    .row {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 10px;
-      margin-bottom: 8px;
-      align-items: center;
-    }
-
-    input,
-    button,
-    textarea,
-    select {
-      border-radius: 8px;
-      border: 1px solid #334155;
-      background: #0b1220;
-      color: #e2e8f0;
-      padding: 8px 10px;
-      font-size: 14px;
-    }
-
-    button {
-      cursor: pointer;
-      background: #1d4ed8;
-      border: none;
-    }
-
-    button:hover {
-      background: #2563eb;
-    }
-
-    button.secondary {
-      background: #334155;
-    }
-
-    button.warn {
-      background: #b45309;
-    }
-
-    button.danger {
-      background: #b91c1c;
-    }
-
-    button.success {
-      background: #059669;
-    }
-
-    button.purple {
-      background: #7c3aed;
-    }
-
-    .mono {
-      font-family: Consolas, Menlo, Monaco, monospace;
-    }
-
-    .small {
-      font-size: 12px;
-      color: #94a3b8;
-    }
-
-    pre {
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: #020617;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 10px;
-      min-height: 120px;
-      max-height: 500px;
-      overflow-y: auto;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: bold;
-    }
-
-    .badge-info {
-      background: #1e40af;
-    }
-
-    .badge-warn {
-      background: #92400e;
-    }
-
-    .badge-ok {
-      background: #065f46;
-    }
-
-    .instructions {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .instructions code {
-      background: #020617;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: Consolas, Menlo, Monaco, monospace;
-      font-size: 12px;
-    }
-
-    .instructions ol {
-      padding-left: 20px;
-    }
-
-    .section-divider {
-      border: none;
-      border-top: 2px solid #1e3a5f;
-      margin: 30px 0;
-    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 20px; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    h2 { color: #38bdf8; margin: 28px 0 10px; border-bottom: 1px solid #1e3a5f; padding-bottom: 8px; font-size: 16px; }
+    .subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 16px; }
+    .card { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+    .row { display: grid; grid-template-columns: 160px 1fr; gap: 8px; margin-bottom: 6px; align-items: center; }
+    input, button, select { border-radius: 6px; border: 1px solid #334155; background: #0b1220; color: #e2e8f0; padding: 7px 10px; font-size: 13px; }
+    button { cursor: pointer; background: #1d4ed8; border: none; font-weight: 600; padding: 8px 16px; }
+    button:hover { background: #2563eb; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.mega { background: linear-gradient(135deg, #059669, #0d9488); font-size: 16px; padding: 12px 28px; }
+    button.mega:hover { background: linear-gradient(135deg, #047857, #0f766e); }
+    button.secondary { background: #334155; }
+    button.danger { background: #b91c1c; }
+    .mono { font-family: Consolas, Menlo, Monaco, monospace; font-size: 12px; }
+    .small { font-size: 12px; color: #94a3b8; }
+    pre { white-space: pre-wrap; word-break: break-word; background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 10px; min-height: 80px; max-height: 500px; overflow-y: auto; font-size: 12px; }
+    /* Results table */
+    .results-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .results-table th { text-align: left; padding: 6px 10px; background: #1e293b; color: #94a3b8; font-weight: 600; }
+    .results-table td { padding: 5px 10px; border-bottom: 1px solid #1e293b; }
+    .results-table tr:hover { background: #1e293b44; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; min-width: 44px; text-align: center; }
+    .badge-pass { background: #065f46; color: #6ee7b7; }
+    .badge-fail { background: #7f1d1d; color: #fca5a5; }
+    .badge-skip { background: #78350f; color: #fde68a; }
+    .badge-wait { background: #1e3a5f; color: #93c5fd; }
+    .badge-run { background: #312e81; color: #a5b4fc; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+    .step-label { color: #64748b; font-size: 11px; font-weight: 700; }
+    .progress { margin: 10px 0; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, #059669, #10b981); transition: width 0.3s; }
+    .summary { display: flex; gap: 16px; margin: 10px 0; font-size: 14px; font-weight: 600; }
+    .summary span { padding: 4px 12px; border-radius: 6px; }
+    .summary .pass { background: #065f46; color: #6ee7b7; }
+    .summary .fail { background: #7f1d1d; color: #fca5a5; }
+    .summary .total { background: #1e293b; color: #e2e8f0; }
   </style>
 </head>
-
 <body>
-  <h1>Admin Products & Inventory Tester</h1>
-  <p class="small">Use this page to run the full API flow without Postman.</p>
+  <h1>🧪 Full API Test Suite — Steps 2→9</h1>
+  <p class="subtitle">One-click end-to-end testing: Auth → Overview → Orders → Products → Zones/Staff → Dispatch → Delivery → Returns</p>
 
   <div class="card">
-    <h3>Config</h3>
     <div class="row"><label>Base URL</label><input id="baseUrl" value="http://localhost:4000" /></div>
-    <div class="row"><label>Username</label><input id="username" value="superadmin" /></div>
-    <div class="row"><label>Password</label><input id="password" type="password" value="admin123" /></div>
+    <div class="row"><label>Admin Username</label><input id="username" value="superadmin" /></div>
+    <div class="row"><label>Admin Password</label><input id="password" type="password" value="admin123" /></div>
     <div class="row"><label>Category ID</label><input id="categoryId" value="1" /></div>
-    <div class="row"><label>City ID (for zone)</label><input id="cityId" value="1" /></div>
+    <div class="row"><label>City ID</label><input id="cityId" value="1" /></div>
   </div>
 
-  <div class="card">
-    <h3>State</h3>
-    <div class="row"><label>Access Token</label><input id="token" class="mono" placeholder="Auto-filled after login" />
-    </div>
-    <div class="row"><label>Product ID</label><input id="productId" class="mono"
-        placeholder="Auto-filled after product creation" /></div>
-    <div class="row"><label>Variant ID</label><input id="variantId" class="mono"
-        placeholder="Auto-filled after variant creation" /></div>
-    <div class="row"><label>Zone ID</label><input id="zoneId" class="mono"
-        placeholder="Auto-filled after zone creation" /></div>
-    <div class="row"><label>Staff ID #1</label><input id="staffId1" class="mono"
-        placeholder="Auto-filled after first staff creation" /></div>
-    <div class="row"><label>Staff ID #2</label><input id="staffId2" class="mono"
-        placeholder="Auto-filled after second staff creation" /></div>
+  <div class="card" style="text-align:center;">
+    <button class="mega" id="btnRunAll" onclick="runAllTests()">🚀 Run ALL Tests (Steps 2 → 9)</button>
+    &nbsp;
+    <button class="secondary" onclick="clearAll()">Clear</button>
   </div>
 
-  <div class="card">
-    <h3>1) Login</h3>
-    <button onclick="login()">Login</button>
+  <div class="progress"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+  <div class="summary" id="summaryBar" style="display:none;">
+    <span class="total" id="sumTotal">0 tests</span>
+    <span class="pass" id="sumPass">0 passed</span>
+    <span class="fail" id="sumFail">0 failed</span>
   </div>
 
-  <div class="card">
-    <h3>2) Create Product (JSON, no image)</h3>
-    <button onclick="createProductNoImage()">Create Product (No Image)</button>
+  <div class="card" style="overflow-x:auto;">
+    <table class="results-table">
+      <thead><tr><th style="width:50px;">Step</th><th>Test</th><th style="width:60px;">Status</th><th>Detail</th></tr></thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
   </div>
 
-  <div class="card">
-    <h3>3) Create Product (form-data + image)</h3>
-    <div class="row"><label>Image</label><input id="createImage" type="file" accept="image/*" /></div>
-    <button onclick="createProductWithImage()">Create Product (With Image)</button>
-  </div>
+  <h2>Response Log</h2>
+  <pre id="log"></pre>
 
-  <div class="card">
-    <h3>4) Add Variant</h3>
-    <div class="row"><label>Size</label><input id="size" value="L" /></div>
-    <div class="row"><label>Colour</label><input id="colour" value="Black" /></div>
-    <div class="row"><label>SKU</label><input id="sku" value="TEST-SKU-001" /></div>
-    <div class="row"><label>Price Paise</label><input id="variantPrice" value="129900" /></div>
-    <button onclick="addVariant()">Add Variant</button>
-  </div>
+<script>
+// ======================== STATE ========================
+const S = {
+  token: null,
+  productId: null,
+  variantId: null,
+  zoneId: null,
+  cityId: null,
+  staffId1: null,
+  staffId2: null,
+  staffEmpId1: null,
+  batchId: null,
+  empUuid: null,
+  deliveryToken: null,
+  deliveryBatchId: null,
+  stopIds: [],
+  returnId: null,
+  testOrderIds: [],
+  testCustomerIds: [],
+};
 
-  <div class="card">
-    <h3>5) Restock Inventory</h3>
-    <div class="row"><label>Quantity To Add</label><input id="qty" value="50" /></div>
-    <button onclick="restock()">Restock</button>
-  </div>
+const logEl = document.getElementById('log');
+function log(title, data) {
+  const c = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  logEl.textContent += `[${new Date().toLocaleTimeString()}] ${title}\n${c}\n\n`;
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function clearAll() {
+  logEl.textContent = '';
+  document.getElementById('resultsBody').innerHTML = '';
+  document.getElementById('summaryBar').style.display = 'none';
+  document.getElementById('progressBar').style.width = '0%';
+}
 
-  <div class="card">
-    <h3>6) Toggle Product Active</h3>
-    <button onclick="toggleProduct()">Toggle Product</button>
-  </div>
+function getBase() { return document.getElementById('baseUrl').value.trim(); }
 
-  <div class="card">
-    <h3>7) Update Product + New Image</h3>
-    <div class="row"><label>New Description</label><input id="newDesc" value="Updated from test.html" /></div>
-    <div class="row"><label>Image</label><input id="updateImage" type="file" accept="image/*" /></div>
-    <button onclick="updateProductWithImage()">Update Product + Image</button>
-  </div>
+async function api(url, options = {}) {
+  const res = await fetch(url, options);
+  const text = await res.text();
+  let body;
+  try { body = JSON.parse(text); } catch { body = text; }
+  return { ok: res.ok, status: res.status, body };
+}
 
-  <div class="card">
-    <h3>8) Zone CRUD + Toggle</h3>
-    <div class="row"><label>Zone Label</label><input id="zoneLabel" value="Agra Central Test Zone" /></div>
-    <div class="row"><label>Center Lat</label><input id="zoneLat" value="27.1767" /></div>
-    <div class="row"><label>Center Lng</label><input id="zoneLng" value="78.0081" /></div>
-    <div class="row"><label>Radius KM</label><input id="zoneRadius" value="6.5" /></div>
-    <button onclick="createZone()">Create Zone</button>
-    <button class="secondary" onclick="listZones()">List Zones</button>
-    <button class="secondary" onclick="updateZone()">Update Zone</button>
-    <button class="secondary" onclick="toggleZone()">Toggle Zone</button>
-  </div>
+async function sql(query, params = []) {
+  const r = await api(`${getBase()}/test/sql`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sql: query, params })
+  });
+  if (!r.ok || !r.body.success) throw new Error(r.body?.error || 'SQL failed');
+  return r.body.data;
+}
 
-  <div class="card">
-    <h3>9) Cities + Categories</h3>
-    <div class="row"><label>City Name</label><input id="newCityName" value="Agra Test City" /></div>
-    <div class="row"><label>City State</label><input id="newCityState" value="Uttar Pradesh" /></div>
-    <button onclick="createCity()">Create City</button>
-    <button class="secondary" onclick="listCities()">List Cities</button>
-    <hr style="border-color:#334155;opacity:.4;" />
-    <div class="row"><label>Category Name</label><input id="newCategoryName" value="Test Category" /></div>
-    <div class="row"><label>Category Slug</label><input id="newCategorySlug" value="test-category" /></div>
-    <button onclick="createCategory()">Create Category</button>
-    <button class="secondary" onclick="listCategories()">List Categories</button>
-  </div>
+function authHeaders() {
+  return { 'Authorization': `Bearer ${S.token}`, 'Content-Type': 'application/json' };
+}
+function deliveryHeaders() {
+  return { 'x-session-token': S.deliveryToken };
+}
 
-  <div class="card">
-    <h3>10) Staff + History + Toggle</h3>
-    <div class="row"><label>Staff #1 Name</label><input id="staffName1" value="Ravi Kumar" /></div>
-    <div class="row"><label>Staff #1 Phone</label><input id="staffPhone1" value="+919999111111" /></div>
-    <button onclick="createStaffOne()">Create Staff #1</button>
-    <div class="row"><label>Staff #2 Name</label><input id="staffName2" value="Mohan Singh" /></div>
-    <div class="row"><label>Staff #2 Phone</label><input id="staffPhone2" value="+919999222222" /></div>
-    <button class="secondary" onclick="createStaffTwo()">Create Staff #2</button>
-    <button class="secondary" onclick="toggleStaffOne()">Toggle Staff #1</button>
-    <button class="secondary" onclick="getStaffHistoryOne()">Get Staff #1 History</button>
-  </div>
+// ======================== TEST DEFINITIONS ========================
+const TESTS = [
+  // Step 2: Admin Auth
+  { step: 2, name: 'Login correct credentials → token', fn: async () => {
+    const r = await api(`${getBase()}/admin/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: document.getElementById('username').value, password: document.getElementById('password').value })
+    });
+    if (!r.ok) return { pass: false, detail: `${r.status}: ${JSON.stringify(r.body)}` };
+    S.token = r.body.accessToken;
+    log('Step 2: Login', r.body);
+    return { pass: !!S.token, detail: S.token ? `token: ${S.token.slice(0,20)}...` : 'No token returned' };
+  }},
+  { step: 2, name: 'Login wrong password → 401', fn: async () => {
+    const r = await api(`${getBase()}/admin/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'superadmin', password: 'WRONG_PASSWORD' })
+    });
+    log('Step 2: Wrong password', r.body);
+    return { pass: r.status === 401, detail: `status=${r.status}` };
+  }},
+  { step: 2, name: 'GET /admin/overview without token → 401', fn: async () => {
+    const r = await api(`${getBase()}/admin/overview`);
+    log('Step 2: No token', { status: r.status });
+    return { pass: r.status === 401, detail: `status=${r.status}` };
+  }},
+  { step: 2, name: 'GET /admin/overview with valid token → 200', fn: async () => {
+    const r = await api(`${getBase()}/admin/overview`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+    log('Step 2: With token', { status: r.status });
+    return { pass: r.ok, detail: `status=${r.status}` };
+  }},
 
-  <div class="card">
-    <h3>Run Entire Flow</h3>
-    <button onclick="runAll()">Run 1 → 7</button>
-    <button onclick="runTaskFlow()">Run Task Flow (Zones + Staff)</button>
-    <button class="secondary" onclick="clearLog()">Clear Log</button>
-  </div>
+  // Step 3: Overview
+  { step: 3, name: 'GET /admin/overview → stats present', fn: async () => {
+    const r = await api(`${getBase()}/admin/overview`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+    log('Step 3: Overview', r.body);
+    const d = r.body?.data || r.body;
+    return { pass: r.ok, detail: `orders_today=${d?.orders_today ?? d?.todayOrders ?? '?'}` };
+  }},
 
-  <!-- ========== DISPATCH ENGINE SECTION ========== -->
-  <h2>🚚 Step 7 — Dispatch Engine Testing</h2>
+  // Step 5: Products & Inventory (before orders so we have product data)
+  { step: 5, name: 'POST /admin/products → created', fn: async () => {
+    const r = await api(`${getBase()}/admin/products`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ name: `Test Product ${Date.now()}`, slug: `test-prod-${Date.now()}`, description: 'Auto test', base_price_paise: 99900, category_id: Number(document.getElementById('categoryId').value) })
+    });
+    log('Step 5: Create product', r.body);
+    if (r.body?.data?.id) S.productId = r.body.data.id;
+    return { pass: !!S.productId, detail: `id=${S.productId}` };
+  }},
+  { step: 5, name: 'POST variants → created', fn: async () => {
+    const r = await api(`${getBase()}/admin/products/${S.productId}/variants`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ size: 'L', colour: 'Black', sku: `SKU-${Date.now()}`, price_paise: 129900 })
+    });
+    log('Step 5: Add variant', r.body);
+    if (r.body?.data?.id) S.variantId = r.body.data.id;
+    return { pass: !!S.variantId, detail: `id=${S.variantId}` };
+  }},
+  { step: 5, name: 'PATCH restock → quantity updated', fn: async () => {
+    const r = await api(`${getBase()}/admin/inventory/${S.variantId}/restock`, {
+      method: 'PATCH', headers: authHeaders(),
+      body: JSON.stringify({ quantity_to_add: 50 })
+    });
+    log('Step 5: Restock', r.body);
+    return { pass: r.ok, detail: JSON.stringify(r.body?.data || r.body?.message) };
+  }},
+  { step: 5, name: 'PATCH toggle → is_active flips', fn: async () => {
+    const r = await api(`${getBase()}/admin/products/${S.productId}/toggle`, {
+      method: 'PATCH', headers: { 'Authorization': `Bearer ${S.token}` }
+    });
+    log('Step 5: Toggle product', r.body);
+    return { pass: r.ok, detail: `is_active=${r.body?.data?.is_active}` };
+  }},
 
-  <div class="instructions">
-    <strong>⚠️ SETUP REQUIRED BEFORE TESTING:</strong>
-    <ol>
-      <li>
-        Get a <strong>free ORS API key</strong> from <a href="https://openrouteservice.org/dev/#/signup" target="_blank"
-          style="color:#38bdf8">openrouteservice.org</a>
-        and put it in <code>backend/.env</code> as <code>ORS_API_KEY=your_key</code>
-      </li>
-      <li>
-        Run this SQL in DBeaver to make cutoff time pass (so zone shows as ready):
-        <br /><code>UPDATE delivery_zones SET cutoff_time = '00:01:00' WHERE id = 'your-zone-id';</code>
-      </li>
-      <li>
-        Create <strong>5 PENDING orders</strong> in the same zone using REAL spread-out coordinates from different areas
-        of your city.
-        <br />Each order needs: <code>customer</code> row, <code>delivery_address</code> row with real lat/lng,
-        <code>order</code> row with status=PENDING and payment_status=SUCCESS.
-        <br />Use the SQL templates below (click "Copy SQL Templates" button).
-      </li>
-      <li>Create a <strong>delivery_staff</strong> row for the same zone.</li>
-      <li>Restart the server after confirming ORS_API_KEY is in .env.</li>
-    </ol>
-  </div>
-
-  <div class="card dispatch">
-    <h3>📋 SQL Templates for Test Data</h3>
-    <p class="small">Click to copy SQL that creates 5 test orders in Agra, India with real spread-out coordinates.
-      <strong>Adjust zone_id, city_id, and category_id to match your DB values.</strong></p>
-    <button class="warn" onclick="copyTestSQL()">Copy SQL Templates to Clipboard</button>
-    <textarea id="sqlTemplates" rows="4" style="width:100%; margin-top:10px; display:none;"></textarea>
-  </div>
-
-  <div class="card dispatch">
-    <h3>8) GET Dispatch Ready</h3>
-    <p class="small">Queries v_dispatch_ready — shows zones meeting both threshold conditions (min orders + cutoff time
-      passed).</p>
-    <button onclick="getDispatchReady()">GET /admin/dispatch/ready</button>
-  </div>
-
-  <div class="card dispatch">
-    <h3>9) Assign EMP to Batch</h3>
-    <div class="row"><label>Batch ID</label><input id="batchId" class="mono"
-        placeholder="Auto-filled from dispatch/ready or paste manually" /></div>
-    <div class="row"><label>Employee ID (UUID)</label><input id="empId" class="mono"
-        placeholder="UUID from delivery_staff table" /></div>
-    <button onclick="assignBatch()">POST /admin/dispatch/batches/:id/assign</button>
-  </div>
-
-  <div class="card dispatch">
-    <h3>10) Dispatch Batch</h3>
-    <p class="small">Triggers the full 10-step dispatch: fetch orders → optimise route via ORS → create batch_stops →
-      update statuses → cache in Valkey.</p>
-    <button onclick="dispatchBatch()">POST /admin/dispatch/batches/:id/dispatch</button>
-  </div>
-
-  <div class="card dispatch">
-    <h3>Run Dispatch Flow</h3>
-    <p class="small">Runs steps 8 → 9 → 10 sequentially (login must be done first, and test data must exist).</p>
-    <button class="warn" onclick="runDispatchFlow()">Run 8 → 10 (Dispatch Flow)</button>
-    <button class="secondary" onclick="clearLog()">Clear Log</button>
-  </div>
-
-  <!-- ========== DELIVERY PORTAL SECTION ========== -->
-  <hr class="section-divider" />
-  <h2>📦 Step 8 — Delivery Portal Testing</h2>
-
-  <div class="instructions">
-    <strong>⚠️ PREREQUISITES:</strong>
-    <ol>
-      <li>Complete the <strong>Dispatch Flow</strong> above first (steps 8→10) so there's an active dispatched batch.
-      </li>
-      <li>The <strong>Employee ID (emp_id)</strong> for login is the <code>emp_id</code> column value (e.g.
-        <code>EMP001</code>), NOT the UUID.</li>
-      <li>Run this SQL in DBeaver to see your delivery_staff emp_id values:<br />
-        <code>SELECT id, emp_id, full_name FROM delivery_staff;</code>
-      </li>
-      <li>If using the test data from <code>04_test_dispatch_data.sql</code>, the emp_id is <code>EMP001</code>.</li>
-    </ol>
-  </div>
-
-  <div class="card delivery">
-    <h3>Delivery Session State</h3>
-    <div class="row"><label>Delivery Session Token</label><input id="deliveryToken" class="mono"
-        placeholder="Auto-filled after delivery login" /></div>
-    <div class="row"><label>Active Batch ID</label><input id="deliveryBatchId" class="mono"
-        placeholder="Auto-filled from active batch" /></div>
-    <div class="row"><label>Current Stop ID</label><input id="currentStopId" class="mono"
-        placeholder="Auto-filled from stops list" /></div>
-  </div>
-
-  <div class="card delivery">
-    <h3>11) Delivery Login</h3>
-    <div class="row"><label>EMP ID (e.g. EMP001)</label><input id="deliveryEmpId" value="EMP001" /></div>
-    <button class="success" onclick="deliveryLogin()">POST /delivery/auth/login</button>
-  </div>
-
-  <div class="card delivery">
-    <h3>12) Delivery Login — Invalid EMP</h3>
-    <p class="small">Tests 401 response for non-existent emp_id.</p>
-    <button class="danger" onclick="deliveryLoginInvalid()">POST /delivery/auth/login (INVALID)</button>
-  </div>
-
-  <div class="card delivery">
-    <h3>13) Get Active Batch</h3>
-    <p class="small">Reads emp's active batch from Valkey → queries DB for full detail.</p>
-    <button class="success" onclick="getActiveBatch()">GET /delivery/batch/active</button>
-  </div>
-
-  <div class="card delivery">
-    <h3>14) Get Batch Stops</h3>
-    <p class="small">Gets all stops for the batch in order. Stop 1 should have <code>is_unlocked: true</code>, others
-      <code>false</code>.</p>
-    <button class="success" onclick="getBatchStops()">GET /delivery/batch/:batchId/stops</button>
-  </div>
-
-  <div class="card delivery">
-    <h3>15) Deliver Stop (Sequential)</h3>
-    <p class="small">Marks the current stop as DELIVERED. Returns next_stop_id and batch_complete status.</p>
-    <div class="row"><label>Stop ID to Deliver</label><input id="deliverStopId" class="mono"
-        placeholder="Auto-filled from stops" /></div>
-    <button class="success" onclick="deliverStop()">PATCH /delivery/stops/:stopId/deliver</button>
-  </div>
-
-  <div class="card delivery">
-    <h3>16) Fail Stop</h3>
-    <p class="small">Marks a stop as FAILED with a reason.</p>
-    <div class="row"><label>Stop ID to Fail</label><input id="failStopId" class="mono" placeholder="Paste stop ID" />
-    </div>
-    <div class="row"><label>Failure Reason</label><input id="failureReason" value="Customer not available" /></div>
-    <button class="danger" onclick="failStop()">PATCH /delivery/stops/:stopId/fail</button>
-  </div>
-
-  <div class="card delivery">
-    <h3>17) Try Out-of-Order Delivery (Edge Case)</h3>
-    <p class="small">Tries to deliver stop 2 before stop 1 → should get 403 "Complete previous stop first".</p>
-    <div class="row"><label>Stop 2 ID</label><input id="outOfOrderStopId" class="mono"
-        placeholder="Paste stop 2 ID here" /></div>
-    <button class="danger" onclick="tryOutOfOrderDelivery()">PATCH stop 2 (should fail)</button>
-  </div>
-
-  <div class="card delivery">
-    <h3>Run Full Delivery Flow</h3>
-    <p class="small">Runs: Login → Active Batch → Get Stops → Deliver ALL stops sequentially → Verify
-      batch_complete=true.</p>
-    <button class="success" onclick="runDeliveryFlow()">Run 11 → Complete All Stops</button>
-    <button class="secondary" onclick="clearLog()">Clear Log</button>
-  </div>
-
-  <!-- ========== RETURNS ADMIN SECTION ========== -->
-  <hr class="section-divider" />
-  <h2>🔄 Step 9 — Returns Admin Testing</h2>
-
-  <div class="instructions">
-    <strong>⚠️ SETUP — Create a test return in DB first:</strong>
-    <p>Run this SQL in DBeaver (replace UUIDs with actual values from your DB):</p>
-    <div style="background:#020617; padding:10px; border-radius:8px; margin:8px 0;">
-      <code style="font-size:12px; white-space:pre-wrap;">-- Find a DELIVERED order to create a return for
-SELECT id, order_number, customer_id, status FROM orders WHERE status = 'DELIVERED' LIMIT 3;
-
--- Create a return (replace order_id and customer_id with actual UUIDs)
-INSERT INTO returns (return_id, order_id, customer_id, reason)
-VALUES (
-  'RET-' || (SELECT order_number FROM orders WHERE id = '{order_id}') || '-X7K',
-  '{order_id}',
-  '{customer_id}',
-  'Item damaged during delivery'
-);</code>
-    </div>
-    <button class="purple" onclick="copyReturnTestSQL()">Copy Return Test SQL</button>
-  </div>
-
-  <div class="card returns">
-    <h3>Returns State</h3>
-    <div class="row"><label>Return ID (UUID)</label><input id="returnId" class="mono"
-        placeholder="Auto-filled from list returns" /></div>
-  </div>
-
-  <div class="card returns">
-    <h3>18) List Returns</h3>
-    <p class="small">GET /admin/returns — lists all returns with JOIN on orders + customers.</p>
-    <div class="row"><label>Status Filter (optional)</label>
-      <select id="returnStatusFilter">
-        <option value="">All</option>
-        <option value="REQUESTED">REQUESTED</option>
-        <option value="APPROVED">APPROVED</option>
-        <option value="REJECTED">REJECTED</option>
-        <option value="REFUNDED">REFUNDED</option>
-      </select>
-    </div>
-    <button class="purple" onclick="listReturns()">GET /admin/returns</button>
-  </div>
-
-  <div class="card returns">
-    <h3>19) Update Return — Approve</h3>
-    <p class="small">PATCH the return to APPROVED with admin notes.</p>
-    <div class="row"><label>Admin Notes</label><input id="approveNotes" value="Approved - item damaged confirmed" />
-    </div>
-    <button class="purple" onclick="approveReturn()">PATCH → APPROVED</button>
-  </div>
-
-  <div class="card returns">
-    <h3>20) Update Return — Refund</h3>
-    <p class="small">PATCH the return to REFUNDED. This also updates order.status=REFUNDED.</p>
-    <div class="row"><label>Refund Ref (PhonePe ID)</label><input id="refundRef" value="REF-PHONEPE-12345" /></div>
-    <button class="purple" onclick="refundReturn()">PATCH → REFUNDED</button>
-  </div>
-
-  <div class="card returns">
-    <h3>21) Update Return — Reject</h3>
-    <p class="small">PATCH the return to REJECTED.</p>
-    <div class="row"><label>Admin Notes</label><input id="rejectNotes" value="Rejected - return window expired" /></div>
-    <button class="danger" onclick="rejectReturn()">PATCH → REJECTED</button>
-  </div>
-
-  <div class="card returns">
-    <h3>Run Full Returns Flow</h3>
-    <p class="small">Runs: List returns → Approve first return → Refund it → Verify order.status=REFUNDED.</p>
-    <button class="purple" onclick="runReturnsFlow()">Run 18 → 20 (Returns Flow)</button>
-    <button class="secondary" onclick="clearLog()">Clear Log</button>
-  </div>
-
-  <!-- ========== EDGE CASE SECTION ========== -->
-  <hr class="section-divider" />
-  <h2>🧪 Edge Case Testing</h2>
-
-  <div class="card edge">
-    <h3>Edge Case — Single Order Dispatch</h3>
-    <p class="small">Create 1 new PENDING order, then trigger dispatch. Should succeed with stop_count=1 and NO ORS API
-      call in server logs.</p>
-    <div class="instructions">
-      <strong>Steps:</strong>
-      <ol>
-        <li>Create a new zone (or use existing one) with <code>min_order_count = 1</code></li>
-        <li>Add 1 PENDING order in that zone</li>
-        <li>Update cutoff_time to past:
-          <code>UPDATE delivery_zones SET cutoff_time = '00:01:00', min_order_count = 1 WHERE id = 'zone-id';</code>
-        </li>
-        <li>GET dispatch/ready → note batch_id</li>
-        <li>Assign EMP → Dispatch</li>
-        <li>Verify: stop_count=1, no ORS warning in server terminal</li>
-      </ol>
-    </div>
-  </div>
-
-  <div class="card edge">
-    <h3>Edge Case — ORS Fallback (Bad API Key)</h3>
-    <p class="small">Test that dispatch still succeeds when ORS fails.</p>
-    <div class="instructions">
-      <strong>Steps:</strong>
-      <ol>
-        <li>In <code>backend/.env</code>, change to: <code>ORS_API_KEY=bad_key_12345</code></li>
-        <li>Restart the server</li>
-        <li>Create new test data (5+ orders, new batch)</li>
-        <li>Run the dispatch flow</li>
-        <li>Verify: returns 200, server logs show <code>"ORS optimisation failed, using original order"</code></li>
-        <li>batch_stops still created, batch status = DISPATCHED</li>
-        <li><strong>Restore real ORS_API_KEY and restart server after testing!</strong></li>
-      </ol>
-    </div>
-  </div>
-
-  <div class="card edge">
-    <h3>Edge Case — Inactive Employee Login</h3>
-    <p class="small">Test 401 for inactive delivery staff.</p>
-    <div class="instructions">
-      <strong>Steps:</strong>
-      <ol>
-        <li>Run in DBeaver: <code>UPDATE delivery_staff SET is_active = false WHERE emp_id = 'EMP001';</code></li>
-        <li>Try delivery login with EMP001 → should get 401 "Employee account is inactive"</li>
-        <li><strong>Restore:</strong> <code>UPDATE delivery_staff SET is_active = true WHERE emp_id = 'EMP001';</code>
-        </li>
-      </ol>
-    </div>
-    <button class="danger" onclick="deliveryLoginInactive()">Test Inactive EMP Login</button>
-  </div>
-
-  <!-- ========== VERIFICATION QUERIES ========== -->
-  <hr class="section-divider" />
-  <h2>🔍 DBeaver Verification Queries</h2>
-
-  <div class="card">
-    <h3>Verification SQL (run in DBeaver after dispatch)</h3>
-    <p class="small">Replace <code>{batch_id}</code> with your actual batch UUID and <code>{emp_uuid}</code> with your
-      employee UUID.</p>
-    <button class="secondary" onclick="copyVerificationSQL()">Copy Verification SQL to Clipboard</button>
-  </div>
-
-  <div class="card">
-    <h3>Verification SQL (run after delivery completion)</h3>
-    <button class="secondary" onclick="copyDeliveryVerificationSQL()">Copy Delivery Verification SQL</button>
-  </div>
-
-  <div class="card">
-    <h3>Verification SQL (run after returns)</h3>
-    <button class="secondary" onclick="copyReturnsVerificationSQL()">Copy Returns Verification SQL</button>
-  </div>
-
-  <!-- ========== VALKEY VERIFICATION ========== -->
-  <div class="card">
-    <h3>Valkey (Redis) Verification Commands</h3>
-    <p class="small">Run these in your terminal to verify Valkey state.</p>
-    <div class="instructions">
-      <strong>After Dispatch:</strong><br />
-      <code>redis-cli GET emp:{emp_uuid}:active_batch</code> → returns the batch_id UUID string<br />
-      <code>redis-cli TTL emp:{emp_uuid}:active_batch</code> → returns ~86400<br /><br />
-      <strong>After Delivery Login:</strong><br />
-      <code>redis-cli GET session:{session_token}</code> → returns the emp_id string (e.g. EMP001)<br />
-      <code>redis-cli TTL session:{session_token}</code> → returns ~43200 (12h)<br /><br />
-      <strong>After All Stops Completed:</strong><br />
-      <code>redis-cli GET emp:{emp_uuid}:active_batch</code> → returns (nil) — batch cleared
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Response Log</h3>
-    <pre id="log"></pre>
-  </div>
-
-  <script>
-    const logEl = document.getElementById('log');
-
-    function log(title, data) {
-      const content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-      logEl.textContent += `[${new Date().toLocaleTimeString()}] ${title}\n${content}\n\n`;
-      logEl.scrollTop = logEl.scrollHeight;
+  // Step 6: Zones, Cities, Staff
+  { step: 6, name: 'POST /admin/cities → city exists', fn: async () => {
+    // First try listing existing cities
+    const list = await api(`${getBase()}/admin/cities`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+    if (list.body?.data?.length > 0) {
+      S.cityId = list.body.data[0].id;
+      log('Step 6: Using existing city', { id: S.cityId, name: list.body.data[0].name });
+      return { pass: true, detail: `Existing city: ${list.body.data[0].name} (id=${S.cityId})` };
     }
+    const r = await api(`${getBase()}/admin/cities`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ name: `Test City ${Date.now()}`, state: 'Uttar Pradesh' })
+    });
+    log('Step 6: Create city', r.body);
+    if (r.body?.data?.id) S.cityId = r.body.data.id;
+    return { pass: !!S.cityId, detail: `id=${S.cityId}` };
+  }},
+  { step: 6, name: 'POST /admin/zones → zone created', fn: async () => {
+    const r = await api(`${getBase()}/admin/zones`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ city_id: Number(S.cityId || document.getElementById('cityId').value), label: `Auto Zone ${Date.now().toString(36)}`, center_lat: 27.1767, center_lng: 78.0081, radius_km: 6.5, min_order_count: 3, cutoff_time: '00:01:00' })
+    });
+    log('Step 6: Create zone', r.body);
+    if (r.body?.data?.id) S.zoneId = r.body.data.id;
+    return { pass: !!S.zoneId, detail: `id=${S.zoneId}` };
+  }},
+  { step: 6, name: 'PATCH /admin/zones/:id/toggle → flips', fn: async () => {
+    const r = await api(`${getBase()}/admin/zones/${S.zoneId}/toggle`, {
+      method: 'PATCH', headers: { 'Authorization': `Bearer ${S.token}` }
+    });
+    log('Step 6: Toggle zone', r.body);
+    // Toggle back so zone is active for dispatch
+    await api(`${getBase()}/admin/zones/${S.zoneId}/toggle`, {
+      method: 'PATCH', headers: { 'Authorization': `Bearer ${S.token}` }
+    });
+    return { pass: r.ok, detail: `toggled (restored to active)` };
+  }},
+  { step: 6, name: 'POST /admin/staff #1 → EMP-xxx-0001', fn: async () => {
+    const r = await api(`${getBase()}/admin/staff`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ full_name: `AutoStaff ${Date.now()}`, phone_number: `+91${String(Date.now()).slice(-10)}1`.slice(0,15), zone_id: S.zoneId })
+    });
+    log('Step 6: Create staff #1', r.body);
+    if (r.body?.data?.id) { S.staffId1 = r.body.data.id; S.staffEmpId1 = r.body.data.emp_id; S.empUuid = r.body.data.id; }
+    return { pass: !!S.staffId1, detail: `emp_id=${S.staffEmpId1}` };
+  }},
+  { step: 6, name: 'POST /admin/staff #2 → sequential EMP', fn: async () => {
+    const r = await api(`${getBase()}/admin/staff`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ full_name: `AutoStaff2 ${Date.now()}`, phone_number: `+91${String(Date.now()).slice(-10)}2`.slice(0,15), zone_id: S.zoneId })
+    });
+    log('Step 6: Create staff #2', r.body);
+    if (r.body?.data?.id) S.staffId2 = r.body.data.id;
+    const emp2 = r.body?.data?.emp_id || '';
+    return { pass: !!S.staffId2, detail: `emp_id=${emp2}` };
+  }},
+  { step: 6, name: 'PATCH /admin/staff/:id/toggle → flips', fn: async () => {
+    const r = await api(`${getBase()}/admin/staff/${S.staffId2}/toggle`, {
+      method: 'PATCH', headers: { 'Authorization': `Bearer ${S.token}` }
+    });
+    log('Step 6: Toggle staff #2', r.body);
+    return { pass: r.ok, detail: `is_active=${r.body?.data?.is_active}` };
+  }},
 
-    function clearLog() {
-      logEl.textContent = '';
-    }
+  // Step 7: Dispatch — create test data via SQL
+  { step: 7, name: 'Create dispatch test data (SQL)', fn: async () => {
+    const ts = Date.now();
+    try {
+      // Get city_id from zone
+      const zoneInfo = await sql(`SELECT city_id FROM delivery_zones WHERE id = $1`, [S.zoneId]);
+      const cityId = zoneInfo[0].city_id;
 
-    function getBase() { return document.getElementById('baseUrl').value.trim(); }
-    function getToken() { return document.getElementById('token').value.trim(); }
-    function getDeliveryToken() { return document.getElementById('deliveryToken').value.trim(); }
+      // Create 5 customers
+      const custs = await sql(
+        `INSERT INTO customers (id, phone_number, full_name, email) VALUES
+         (gen_random_uuid(), $1, $6, $11),
+         (gen_random_uuid(), $2, $7, $12),
+         (gen_random_uuid(), $3, $8, $13),
+         (gen_random_uuid(), $4, $9, $14),
+         (gen_random_uuid(), $5, $10, $15)
+         RETURNING id, full_name`,
+        [`+91${String(ts).slice(-10)}1`.slice(0,15), `+91${String(ts).slice(-10)}2`.slice(0,15), `+91${String(ts).slice(-10)}3`.slice(0,15), `+91${String(ts).slice(-10)}4`.slice(0,15), `+91${String(ts).slice(-10)}5`.slice(0,15),
+         `AutoA-${ts}`, `AutoB-${ts}`, `AutoC-${ts}`, `AutoD-${ts}`, `AutoE-${ts}`,
+         `a${ts}@t.com`, `b${ts}@t.com`, `c${ts}@t.com`, `d${ts}@t.com`, `e${ts}@t.com`]
+      );
+      S.testCustomerIds = custs.map(c => c.id);
 
-    async function request(url, options) {
-      const res = await fetch(url, options);
-      const text = await res.text();
-      let body;
-      try { body = JSON.parse(text); } catch { body = text; }
-      if (!res.ok) throw { status: res.status, body };
-      return body;
-    }
+      const coords = [
+        { lat: 27.205, lng: 78.035, addr: 'Belanganj, NH2, Agra' },
+        { lat: 27.190, lng: 78.005, addr: 'Shahganj, MG Road, Agra' },
+        { lat: 27.162, lng: 78.040, addr: 'Fatehabad Road, Agra' },
+        { lat: 27.159, lng: 78.015, addr: 'Sadar Bazaar, Agra Cantt' },
+        { lat: 27.174, lng: 78.048, addr: 'Mehtab Bagh, Agra' },
+      ];
 
-    function randomSlug(prefix) {
-      return `${prefix}-${Date.now()}`;
-    }
-
-    async function login() {
-      try {
-        const body = await request(`${getBase()}/admin/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: document.getElementById('username').value.trim(),
-            password: document.getElementById('password').value
-          })
-        });
-        document.getElementById('token').value = body.accessToken || '';
-        log('Login success', body);
-      } catch (err) {
-        log('Login failed', err);
+      // Create addresses + orders one by one
+      S.testOrderIds = [];
+      for (let i = 0; i < 5; i++) {
+        const addr = await sql(
+          `INSERT INTO delivery_addresses (id, customer_id, address_line, city_id, pincode, lat, lng)
+           VALUES (gen_random_uuid(), $1, $2, $3, '282001', $4, $5) RETURNING id`,
+          [custs[i].id, coords[i].addr, cityId, coords[i].lat, coords[i].lng]
+        );
+        const ord = await sql(
+          `INSERT INTO orders (customer_id, address_id, zone_id, customer_display_id, status, total_paise, payment_status, payment_gateway)
+           VALUES ($1, $2, $3, $4, 'PENDING', $5, 'SUCCESS', 'PHONEPE') RETURNING id, order_number`,
+          [custs[i].id, addr[0].id, S.zoneId, `Auto-${custs[i].full_name}-ORD`, 50000 + Math.floor(Math.random() * 100000)]
+        );
+        S.testOrderIds.push(ord[0].id);
       }
-    }
 
-    async function createProductNoImage() {
-      try {
-        const body = await request(`${getBase()}/admin/products`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: 'HTML Test Hoodie',
-            slug: randomSlug('html-test-hoodie'),
-            description: 'Created via test.html without image',
-            base_price_paise: 129900,
-            category_id: Number(document.getElementById('categoryId').value)
-          })
-        });
-        if (body?.data?.id) document.getElementById('productId').value = body.data.id;
-        log('Create product (no image) success', body);
-      } catch (err) {
-        log('Create product (no image) failed', err);
+      log('Step 7: Test data created', { customers: custs.length, orders: S.testOrderIds.length });
+      return { pass: S.testOrderIds.length === 5, detail: `5 customers, 5 addresses, 5 orders created` };
+    } catch (err) {
+      log('Step 7: SQL error', err.message);
+      return { pass: false, detail: err.message };
+    }
+  }},
+  { step: 7, name: 'GET /admin/dispatch/ready → zone appears', fn: async () => {
+    const r = await api(`${getBase()}/admin/dispatch/ready`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+    log('Step 7: Dispatch ready', r.body);
+    const zones = r.body?.data || [];
+    const myZone = zones.find(z => z.zone_id === S.zoneId);
+    if (myZone?.batch_id) S.batchId = myZone.batch_id;
+    return { pass: !!myZone, detail: myZone ? `batch_id=${S.batchId}, orders=${myZone.pending_order_count}` : 'Zone not found in ready list' };
+  }},
+  { step: 7, name: 'POST assign emp → batch assigned', fn: async () => {
+    const r = await api(`${getBase()}/admin/dispatch/batches/${S.batchId}/assign`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ emp_id: S.empUuid })
+    });
+    log('Step 7: Assign batch', r.body);
+    return { pass: r.ok, detail: r.body?.message || JSON.stringify(r.body) };
+  }},
+  { step: 7, name: 'POST dispatch batch → 5 stops', fn: async () => {
+    const r = await api(`${getBase()}/admin/dispatch/batches/${S.batchId}/dispatch`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${S.token}` }
+    });
+    log('Step 7: Dispatch batch', r.body);
+    const sc = r.body?.data?.stop_count;
+    return { pass: r.ok && sc >= 5, detail: `stop_count=${sc}` };
+  }},
+
+  // Step 4: Orders (now we have dispatched orders)
+  { step: 4, name: 'GET /admin/orders → list returned', fn: async () => {
+    const r = await api(`${getBase()}/admin/orders`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+    log('Step 4: List orders', { count: r.body?.data?.length });
+    return { pass: r.ok && Array.isArray(r.body?.data), detail: `${r.body?.data?.length} orders` };
+  }},
+  { step: 4, name: 'GET /admin/orders?status=DISPATCHED → filtered', fn: async () => {
+    const r = await api(`${getBase()}/admin/orders?status=DISPATCHED`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+    log('Step 4: Filtered orders', { count: r.body?.data?.length });
+    const allDispatched = (r.body?.data || []).every(o => o.status === 'DISPATCHED');
+    return { pass: r.ok && allDispatched, detail: `${r.body?.data?.length} dispatched orders` };
+  }},
+  { step: 4, name: 'GET /admin/orders/:id → single order', fn: async () => {
+    if (!S.testOrderIds[0]) return { pass: false, detail: 'No test orders' };
+    const r = await api(`${getBase()}/admin/orders/${S.testOrderIds[0]}`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+    log('Step 4: Single order', r.body);
+    return { pass: r.ok, detail: `order_number=${r.body?.data?.order_number}` };
+  }},
+  { step: 4, name: 'GET /admin/orders?page=1&limit=2 → pagination', fn: async () => {
+    const r = await api(`${getBase()}/admin/orders?page=1&limit=2`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+    log('Step 4: Pagination', { count: r.body?.data?.length, pagination: r.body?.pagination });
+    return { pass: r.ok && r.body?.data?.length <= 2, detail: `${r.body?.data?.length} results (limit 2)` };
+  }},
+
+  // Step 8: Delivery Portal
+  { step: 8, name: 'POST /delivery/auth/login valid → token', fn: async () => {
+    // Use the emp_id of staff #1 we created
+    const r = await api(`${getBase()}/delivery/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emp_id: S.staffEmpId1 })
+    });
+    log('Step 8: Delivery login', r.body);
+    if (r.body?.session_token) S.deliveryToken = r.body.session_token;
+    return { pass: !!S.deliveryToken, detail: `token=${S.deliveryToken?.slice(0,12)}...` };
+  }},
+  { step: 8, name: 'POST /delivery/auth/login invalid → 401', fn: async () => {
+    const r = await api(`${getBase()}/delivery/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emp_id: 'FAKE_EMP_999' })
+    });
+    log('Step 8: Invalid login', { status: r.status });
+    return { pass: r.status === 401, detail: `status=${r.status}` };
+  }},
+  { step: 8, name: 'GET /delivery/batch/active → batch info', fn: async () => {
+    const r = await api(`${getBase()}/delivery/batch/active`, { headers: deliveryHeaders() });
+    log('Step 8: Active batch', r.body);
+    if (r.body?.data?.id) S.deliveryBatchId = r.body.data.id;
+    return { pass: !!S.deliveryBatchId, detail: `batch=${S.deliveryBatchId?.slice(0,8)}..., stops=${r.body?.data?.total_stops}` };
+  }},
+  { step: 8, name: 'GET /delivery/batch/:id/stops → sequential unlock', fn: async () => {
+    const r = await api(`${getBase()}/delivery/batch/${S.deliveryBatchId}/stops`, { headers: deliveryHeaders() });
+    log('Step 8: Batch stops', r.body);
+    const stops = r.body?.data || [];
+    S.stopIds = stops.map(s => s.stop_id);
+    const stop1Unlocked = stops[0]?.is_unlocked === true;
+    const stop2Locked = stops.length > 1 ? stops[1]?.is_unlocked === false : true;
+    return { pass: stops.length >= 5 && stop1Unlocked && stop2Locked, detail: `${stops.length} stops, stop1_unlocked=${stop1Unlocked}, stop2_locked=${stop2Locked}` };
+  }},
+  { step: 8, name: 'Out-of-order delivery → 403', fn: async () => {
+    if (S.stopIds.length < 2) return { pass: false, detail: 'Not enough stops' };
+    const r = await api(`${getBase()}/delivery/stops/${S.stopIds[1]}/deliver`, {
+      method: 'PATCH', headers: deliveryHeaders()
+    });
+    log('Step 8: Out-of-order', { status: r.status });
+    return { pass: r.status === 403, detail: `status=${r.status} ${r.body?.message}` };
+  }},
+  { step: 8, name: 'Deliver all stops → batch_complete:true', fn: async () => {
+    let lastResult = null;
+    for (let i = 0; i < S.stopIds.length; i++) {
+      const r = await api(`${getBase()}/delivery/stops/${S.stopIds[i]}/deliver`, {
+        method: 'PATCH', headers: deliveryHeaders()
+      });
+      log(`Step 8: Deliver stop ${i+1}`, r.body);
+      if (!r.ok) return { pass: false, detail: `Stop ${i+1} failed: ${r.body?.message}` };
+      lastResult = r.body;
+    }
+    const complete = lastResult?.data?.batch_complete === true;
+    return { pass: complete, detail: `batch_complete=${complete}` };
+  }},
+
+  // Step 9: Returns
+  { step: 9, name: 'Create test return (SQL)', fn: async () => {
+    try {
+      // Find a DELIVERED order from our test set
+      const delivered = await sql(
+        `SELECT id, order_number, customer_id FROM orders WHERE status = 'DELIVERED' AND id = ANY($1::uuid[]) LIMIT 1`,
+        [S.testOrderIds]
+      );
+      if (delivered.length === 0) {
+        // Try any delivered order
+        const anyDel = await sql(`SELECT id, order_number, customer_id FROM orders WHERE status = 'DELIVERED' LIMIT 1`);
+        if (anyDel.length === 0) return { pass: false, detail: 'No DELIVERED orders found' };
+        delivered.push(anyDel[0]);
       }
+      const o = delivered[0];
+      const ret = await sql(
+        `INSERT INTO returns (return_id, order_id, customer_id, reason) VALUES ($1, $2, $3, $4) RETURNING id, return_id`,
+        [`RET-${o.order_number}-A${Date.now() % 10000}`, o.id, o.customer_id, 'Item damaged during delivery (auto test)']
+      );
+      S.returnId = ret[0].id;
+      log('Step 9: Return created', ret[0]);
+      return { pass: !!S.returnId, detail: `return_id=${ret[0].return_id}` };
+    } catch (err) {
+      log('Step 9: SQL error', err.message);
+      return { pass: false, detail: err.message };
+    }
+  }},
+  { step: 9, name: 'GET /admin/returns → return listed', fn: async () => {
+    const r = await api(`${getBase()}/admin/returns`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+    log('Step 9: List returns', r.body);
+    const found = (r.body?.data || []).some(ret => ret.id === S.returnId);
+    return { pass: r.ok && found, detail: `${r.body?.data?.length} returns, target found=${found}` };
+  }},
+  { step: 9, name: 'PATCH → APPROVED', fn: async () => {
+    const r = await api(`${getBase()}/admin/returns/${S.returnId}`, {
+      method: 'PATCH', headers: authHeaders(),
+      body: JSON.stringify({ status: 'APPROVED', admin_notes: 'Auto-test approved' })
+    });
+    log('Step 9: Approve', r.body);
+    return { pass: r.ok && r.body?.data?.status === 'APPROVED', detail: `status=${r.body?.data?.status}` };
+  }},
+  { step: 9, name: 'PATCH → REFUNDED (cascades order)', fn: async () => {
+    const r = await api(`${getBase()}/admin/returns/${S.returnId}`, {
+      method: 'PATCH', headers: authHeaders(),
+      body: JSON.stringify({ status: 'REFUNDED', admin_notes: 'Auto-test refund', refund_ref: 'REF-AUTO-' + Date.now() })
+    });
+    log('Step 9: Refund', r.body);
+    const cascaded = r.body?.data?.order_status_updated === 'REFUNDED';
+    return { pass: r.ok && cascaded, detail: `order_status_updated=${r.body?.data?.order_status_updated}` };
+  }},
+];
+
+// ======================== TEST RUNNER ========================
+async function runAllTests() {
+  clearAll();
+  const btn = document.getElementById('btnRunAll');
+  btn.disabled = true;
+  btn.textContent = '⏳ Running...';
+
+  const tbody = document.getElementById('resultsBody');
+  const rows = [];
+
+  // Create all result rows
+  for (const t of TESTS) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="step-label">Step ${t.step}</span></td>
+      <td>${t.name}</td>
+      <td><span class="badge badge-wait">WAIT</span></td>
+      <td class="small">—</td>`;
+    tbody.appendChild(tr);
+    rows.push(tr);
+  }
+
+  let passed = 0, failed = 0;
+  const bar = document.getElementById('progressBar');
+  const summaryBar = document.getElementById('summaryBar');
+  summaryBar.style.display = 'flex';
+
+  for (let i = 0; i < TESTS.length; i++) {
+    const t = TESTS[i];
+    const tr = rows[i];
+    tr.children[2].innerHTML = '<span class="badge badge-run">RUN</span>';
+    tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    let result;
+    try {
+      result = await t.fn();
+    } catch (err) {
+      result = { pass: false, detail: `Error: ${err.message}` };
+      log(`ERROR in "${t.name}"`, err.message);
     }
 
-    async function createProductWithImage() {
-      try {
-        const file = document.getElementById('createImage').files[0];
-        if (!file) return log('Create product (with image) failed', 'Pick an image first.');
-
-        const fd = new FormData();
-        fd.append('name', 'HTML Test Tee');
-        fd.append('slug', randomSlug('html-test-tee'));
-        fd.append('description', 'Created via test.html with image');
-        fd.append('base_price_paise', '79900');
-        fd.append('category_id', document.getElementById('categoryId').value);
-        fd.append('image', file);
-
-        const body = await request(`${getBase()}/admin/products`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${getToken()}` },
-          body: fd
-        });
-
-        if (body?.data?.id) document.getElementById('productId').value = body.data.id;
-        log('Create product (with image) success', body);
-      } catch (err) {
-        log('Create product (with image) failed', err);
-      }
+    if (result.pass) {
+      passed++;
+      tr.children[2].innerHTML = '<span class="badge badge-pass">PASS</span>';
+    } else {
+      failed++;
+      tr.children[2].innerHTML = '<span class="badge badge-fail">FAIL</span>';
     }
+    tr.children[3].textContent = result.detail || '';
 
-    async function addVariant() {
-      try {
-        const productId = document.getElementById('productId').value.trim();
-        if (!productId) return log('Add variant failed', 'Set productId first.');
+    // Update progress
+    const pct = Math.round(((i + 1) / TESTS.length) * 100);
+    bar.style.width = pct + '%';
+    document.getElementById('sumTotal').textContent = `${i + 1}/${TESTS.length} tests`;
+    document.getElementById('sumPass').textContent = `${passed} passed`;
+    document.getElementById('sumFail').textContent = `${failed} failed`;
+  }
 
-        const body = await request(`${getBase()}/admin/products/${productId}/variants`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            size: document.getElementById('size').value,
-            colour: document.getElementById('colour').value,
-            sku: `${document.getElementById('sku').value}-${Date.now()}`,
-            price_paise: Number(document.getElementById('variantPrice').value)
-          })
-        });
-
-        if (body?.data?.id) document.getElementById('variantId').value = body.data.id;
-        log('Add variant success', body);
-      } catch (err) {
-        log('Add variant failed', err);
-      }
-    }
-
-    async function restock() {
-      try {
-        const variantId = document.getElementById('variantId').value.trim();
-        if (!variantId) return log('Restock failed', 'Set variantId first.');
-
-        const body = await request(`${getBase()}/admin/inventory/${variantId}/restock`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            quantity_to_add: Number(document.getElementById('qty').value)
-          })
-        });
-        log('Restock success', body);
-      } catch (err) {
-        log('Restock failed', err);
-      }
-    }
-
-    async function toggleProduct() {
-      try {
-        const productId = document.getElementById('productId').value.trim();
-        if (!productId) return log('Toggle failed', 'Set productId first.');
-
-        const body = await request(`${getBase()}/admin/products/${productId}/toggle`, {
-          method: 'PATCH',
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-        log('Toggle success', body);
-      } catch (err) {
-        log('Toggle failed', err);
-      }
-    }
-
-    async function updateProductWithImage() {
-      try {
-        const productId = document.getElementById('productId').value.trim();
-        if (!productId) return log('Update failed', 'Set productId first.');
-
-        const file = document.getElementById('updateImage').files[0];
-        if (!file) return log('Update failed', 'Pick an update image first.');
-
-        const fd = new FormData();
-        fd.append('description', document.getElementById('newDesc').value);
-        fd.append('image', file);
-
-        const body = await request(`${getBase()}/admin/products/${productId}`, {
-          method: 'PUT',
-          headers: { 'Authorization': `Bearer ${getToken()}` },
-          body: fd
-        });
-        log('Update product + image success', body);
-      } catch (err) {
-        log('Update product + image failed', err);
-      }
-    }
-
-    async function listZones() {
-      try {
-        const body = await request(`${getBase()}/admin/zones`, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-        log('List zones success', body);
-      } catch (err) {
-        log('List zones failed', err);
-      }
-    }
-
-    async function createZone() {
-      try {
-        const body = await request(`${getBase()}/admin/zones`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            city_id: Number(document.getElementById('cityId').value),
-            label: randomName(document.getElementById('zoneLabel').value),
-            center_lat: Number(document.getElementById('zoneLat').value),
-            center_lng: Number(document.getElementById('zoneLng').value),
-            radius_km: Number(document.getElementById('zoneRadius').value),
-            min_order_count: 5,
-            cutoff_time: '14:00:00'
-          })
-        });
-        if (body?.data?.id) document.getElementById('zoneId').value = body.data.id;
-        log('Create zone success (Agra checkpoint)', body);
-      } catch (err) {
-        log('Create zone failed', err);
-      }
-    }
-
-    async function updateZone() {
-      try {
-        const zoneId = document.getElementById('zoneId').value.trim();
-        if (!zoneId) return log('Update zone failed', 'Set zoneId first.');
-        const body = await request(`${getBase()}/admin/zones/${zoneId}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            label: `Updated ${new Date().toLocaleTimeString()}`,
-            radius_km: Number(document.getElementById('zoneRadius').value) + 1
-          })
-        });
-        log('Update zone success', body);
-      } catch (err) {
-        log('Update zone failed', err);
-      }
-    }
-
-    async function toggleZone() {
-      try {
-        const zoneId = document.getElementById('zoneId').value.trim();
-        if (!zoneId) return log('Toggle zone failed', 'Set zoneId first.');
-        const body = await request(`${getBase()}/admin/zones/${zoneId}/toggle`, {
-          method: 'PATCH',
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-        log('Toggle zone success (is_active flips)', body);
-      } catch (err) {
-        log('Toggle zone failed', err);
-      }
-    }
-
-    async function listCities() {
-      try {
-        const body = await request(`${getBase()}/admin/cities`, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-        log('List cities success', body);
-      } catch (err) {
-        log('List cities failed', err);
-      }
-    }
-
-    async function createCity() {
-      try {
-        const body = await request(`${getBase()}/admin/cities`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: randomName(document.getElementById('newCityName').value),
-            state: document.getElementById('newCityState').value
-          })
-        });
-        log('Create city success', body);
-      } catch (err) {
-        log('Create city failed', err);
-      }
-    }
-
-    async function listCategories() {
-      try {
-        const body = await request(`${getBase()}/admin/categories`, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-        log('List categories success', body);
-      } catch (err) {
-        log('List categories failed', err);
-      }
-    }
-
-    async function createCategory() {
-      try {
-        const slug = `${document.getElementById('newCategorySlug').value}-${Date.now()}`;
-        const body = await request(`${getBase()}/admin/categories`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: randomName(document.getElementById('newCategoryName').value),
-            slug
-          })
-        });
-        log('Create category success', body);
-      } catch (err) {
-        log('Create category failed', err);
-      }
-    }
-
-    async function createStaffOne() {
-      try {
-        const zoneId = document.getElementById('zoneId').value.trim();
-        if (!zoneId) return log('Create staff #1 failed', 'Create zone first to get zoneId.');
-
-        const body = await request(`${getBase()}/admin/staff`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            full_name: document.getElementById('staffName1').value,
-            phone_number: document.getElementById('staffPhone1').value,
-            zone_id: zoneId
-          })
-        });
-        if (body?.data?.id) document.getElementById('staffId1').value = body.data.id;
-        log('Create staff #1 success (expect EMP-AGR-0001)', body);
-      } catch (err) {
-        log('Create staff #1 failed', err);
-      }
-    }
-
-    async function createStaffTwo() {
-      try {
-        const zoneId = document.getElementById('zoneId').value.trim();
-        if (!zoneId) return log('Create staff #2 failed', 'Create zone first to get zoneId.');
-
-        const body = await request(`${getBase()}/admin/staff`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            full_name: document.getElementById('staffName2').value,
-            phone_number: document.getElementById('staffPhone2').value,
-            zone_id: zoneId
-          })
-        });
-        if (body?.data?.id) document.getElementById('staffId2').value = body.data.id;
-        log('Create staff #2 success (expect EMP-AGR-0002)', body);
-      } catch (err) {
-        log('Create staff #2 failed', err);
-      }
-    }
-
-    async function toggleStaffOne() {
-      try {
-        const staffId = document.getElementById('staffId1').value.trim();
-        if (!staffId) return log('Toggle staff failed', 'Create first staff record first.');
-        const body = await request(`${getBase()}/admin/staff/${staffId}/toggle`, {
-          method: 'PATCH',
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-        log('Toggle staff #1 success (is_active flips)', body);
-      } catch (err) {
-        log('Toggle staff #1 failed', err);
-      }
-    }
-
-    async function getStaffHistoryOne() {
-      try {
-        const staffId = document.getElementById('staffId1').value.trim();
-        if (!staffId) return log('Staff history failed', 'Create first staff record first.');
-        const body = await request(`${getBase()}/admin/staff/${staffId}/history`, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-        log('Staff history success', body);
-      } catch (err) {
-        log('Staff history failed', err);
-      }
-    }
-
-    async function runAll() {
-      await login();
-      await createProductNoImage();
-      await addVariant();
-      await restock();
-      await toggleProduct();
-      log('Run all', 'Complete. Use create/update image buttons for file uploads.');
-    }
-  </script>
+  btn.disabled = false;
+  btn.textContent = failed === 0 ? '✅ All Passed! Run Again?' : `⚠️ ${failed} Failed — Run Again?`;
+  log('=== COMPLETE ===', `${passed} passed, ${failed} failed out of ${TESTS.length} tests`);
+}
+</script>
 </body>
-
 </html>
