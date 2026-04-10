@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Products & Dispatch API Tester</title>
+  <title>Admin Products, Dispatch, Delivery & Returns API Tester</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -23,6 +23,12 @@
     }
     .card.dispatch {
       border-left: 3px solid #f59e0b;
+    }
+    .card.delivery {
+      border-left: 3px solid #10b981;
+    }
+    .card.returns {
+      border-left: 3px solid #8b5cf6;
     }
     .card.edge {
       border-left: 3px solid #ef4444;
@@ -51,6 +57,8 @@
     button.secondary { background: #334155; }
     button.warn { background: #b45309; }
     button.danger { background: #b91c1c; }
+    button.success { background: #059669; }
+    button.purple { background: #7c3aed; }
     .mono { font-family: Consolas, Menlo, Monaco, monospace; }
     .small { font-size: 12px; color: #94a3b8; }
     pre {
@@ -91,10 +99,15 @@
       font-size: 12px;
     }
     .instructions ol { padding-left: 20px; }
+    .section-divider {
+      border: none;
+      border-top: 2px solid #1e3a5f;
+      margin: 30px 0;
+    }
   </style>
 </head>
 <body>
-  <h1>Admin Products & Dispatch API Tester</h1>
+  <h1>Admin Products, Dispatch, Delivery & Returns API Tester</h1>
   <p class="small">Use this page to run the full API flow without Postman.</p>
 
   <div class="card">
@@ -218,7 +231,155 @@
     <button class="secondary" onclick="clearLog()">Clear Log</button>
   </div>
 
+  <!-- ========== DELIVERY PORTAL SECTION ========== -->
+  <hr class="section-divider" />
+  <h2>📦 Step 8 — Delivery Portal Testing</h2>
+
+  <div class="instructions">
+    <strong>⚠️ PREREQUISITES:</strong>
+    <ol>
+      <li>Complete the <strong>Dispatch Flow</strong> above first (steps 8→10) so there's an active dispatched batch.</li>
+      <li>The <strong>Employee ID (emp_id)</strong> for login is the <code>emp_id</code> column value (e.g. <code>EMP001</code>), NOT the UUID.</li>
+      <li>Run this SQL in DBeaver to see your delivery_staff emp_id values:<br/>
+        <code>SELECT id, emp_id, full_name FROM delivery_staff;</code>
+      </li>
+      <li>If using the test data from <code>04_test_dispatch_data.sql</code>, the emp_id is <code>EMP001</code>.</li>
+    </ol>
+  </div>
+
+  <div class="card delivery">
+    <h3>Delivery Session State</h3>
+    <div class="row"><label>Delivery Session Token</label><input id="deliveryToken" class="mono" placeholder="Auto-filled after delivery login" /></div>
+    <div class="row"><label>Active Batch ID</label><input id="deliveryBatchId" class="mono" placeholder="Auto-filled from active batch" /></div>
+    <div class="row"><label>Current Stop ID</label><input id="currentStopId" class="mono" placeholder="Auto-filled from stops list" /></div>
+  </div>
+
+  <div class="card delivery">
+    <h3>11) Delivery Login</h3>
+    <div class="row"><label>EMP ID (e.g. EMP001)</label><input id="deliveryEmpId" value="EMP001" /></div>
+    <button class="success" onclick="deliveryLogin()">POST /delivery/auth/login</button>
+  </div>
+
+  <div class="card delivery">
+    <h3>12) Delivery Login — Invalid EMP</h3>
+    <p class="small">Tests 401 response for non-existent emp_id.</p>
+    <button class="danger" onclick="deliveryLoginInvalid()">POST /delivery/auth/login (INVALID)</button>
+  </div>
+
+  <div class="card delivery">
+    <h3>13) Get Active Batch</h3>
+    <p class="small">Reads emp's active batch from Valkey → queries DB for full detail.</p>
+    <button class="success" onclick="getActiveBatch()">GET /delivery/batch/active</button>
+  </div>
+
+  <div class="card delivery">
+    <h3>14) Get Batch Stops</h3>
+    <p class="small">Gets all stops for the batch in order. Stop 1 should have <code>is_unlocked: true</code>, others <code>false</code>.</p>
+    <button class="success" onclick="getBatchStops()">GET /delivery/batch/:batchId/stops</button>
+  </div>
+
+  <div class="card delivery">
+    <h3>15) Deliver Stop (Sequential)</h3>
+    <p class="small">Marks the current stop as DELIVERED. Returns next_stop_id and batch_complete status.</p>
+    <div class="row"><label>Stop ID to Deliver</label><input id="deliverStopId" class="mono" placeholder="Auto-filled from stops" /></div>
+    <button class="success" onclick="deliverStop()">PATCH /delivery/stops/:stopId/deliver</button>
+  </div>
+
+  <div class="card delivery">
+    <h3>16) Fail Stop</h3>
+    <p class="small">Marks a stop as FAILED with a reason.</p>
+    <div class="row"><label>Stop ID to Fail</label><input id="failStopId" class="mono" placeholder="Paste stop ID" /></div>
+    <div class="row"><label>Failure Reason</label><input id="failureReason" value="Customer not available" /></div>
+    <button class="danger" onclick="failStop()">PATCH /delivery/stops/:stopId/fail</button>
+  </div>
+
+  <div class="card delivery">
+    <h3>17) Try Out-of-Order Delivery (Edge Case)</h3>
+    <p class="small">Tries to deliver stop 2 before stop 1 → should get 403 "Complete previous stop first".</p>
+    <div class="row"><label>Stop 2 ID</label><input id="outOfOrderStopId" class="mono" placeholder="Paste stop 2 ID here" /></div>
+    <button class="danger" onclick="tryOutOfOrderDelivery()">PATCH stop 2 (should fail)</button>
+  </div>
+
+  <div class="card delivery">
+    <h3>Run Full Delivery Flow</h3>
+    <p class="small">Runs: Login → Active Batch → Get Stops → Deliver ALL stops sequentially → Verify batch_complete=true.</p>
+    <button class="success" onclick="runDeliveryFlow()">Run 11 → Complete All Stops</button>
+    <button class="secondary" onclick="clearLog()">Clear Log</button>
+  </div>
+
+  <!-- ========== RETURNS ADMIN SECTION ========== -->
+  <hr class="section-divider" />
+  <h2>🔄 Step 9 — Returns Admin Testing</h2>
+
+  <div class="instructions">
+    <strong>⚠️ SETUP — Create a test return in DB first:</strong>
+    <p>Run this SQL in DBeaver (replace UUIDs with actual values from your DB):</p>
+    <div style="background:#020617; padding:10px; border-radius:8px; margin:8px 0;">
+      <code style="font-size:12px; white-space:pre-wrap;">-- Find a DELIVERED order to create a return for
+SELECT id, order_number, customer_id, status FROM orders WHERE status = 'DELIVERED' LIMIT 3;
+
+-- Create a return (replace order_id and customer_id with actual UUIDs)
+INSERT INTO returns (return_id, order_id, customer_id, reason)
+VALUES (
+  'RET-' || (SELECT order_number FROM orders WHERE id = '{order_id}') || '-X7K',
+  '{order_id}',
+  '{customer_id}',
+  'Item damaged during delivery'
+);</code>
+    </div>
+    <button class="purple" onclick="copyReturnTestSQL()">Copy Return Test SQL</button>
+  </div>
+
+  <div class="card returns">
+    <h3>Returns State</h3>
+    <div class="row"><label>Return ID (UUID)</label><input id="returnId" class="mono" placeholder="Auto-filled from list returns" /></div>
+  </div>
+
+  <div class="card returns">
+    <h3>18) List Returns</h3>
+    <p class="small">GET /admin/returns — lists all returns with JOIN on orders + customers.</p>
+    <div class="row"><label>Status Filter (optional)</label>
+      <select id="returnStatusFilter">
+        <option value="">All</option>
+        <option value="REQUESTED">REQUESTED</option>
+        <option value="APPROVED">APPROVED</option>
+        <option value="REJECTED">REJECTED</option>
+        <option value="REFUNDED">REFUNDED</option>
+      </select>
+    </div>
+    <button class="purple" onclick="listReturns()">GET /admin/returns</button>
+  </div>
+
+  <div class="card returns">
+    <h3>19) Update Return — Approve</h3>
+    <p class="small">PATCH the return to APPROVED with admin notes.</p>
+    <div class="row"><label>Admin Notes</label><input id="approveNotes" value="Approved - item damaged confirmed" /></div>
+    <button class="purple" onclick="approveReturn()">PATCH → APPROVED</button>
+  </div>
+
+  <div class="card returns">
+    <h3>20) Update Return — Refund</h3>
+    <p class="small">PATCH the return to REFUNDED. This also updates order.status=REFUNDED.</p>
+    <div class="row"><label>Refund Ref (PhonePe ID)</label><input id="refundRef" value="REF-PHONEPE-12345" /></div>
+    <button class="purple" onclick="refundReturn()">PATCH → REFUNDED</button>
+  </div>
+
+  <div class="card returns">
+    <h3>21) Update Return — Reject</h3>
+    <p class="small">PATCH the return to REJECTED.</p>
+    <div class="row"><label>Admin Notes</label><input id="rejectNotes" value="Rejected - return window expired" /></div>
+    <button class="danger" onclick="rejectReturn()">PATCH → REJECTED</button>
+  </div>
+
+  <div class="card returns">
+    <h3>Run Full Returns Flow</h3>
+    <p class="small">Runs: List returns → Approve first return → Refund it → Verify order.status=REFUNDED.</p>
+    <button class="purple" onclick="runReturnsFlow()">Run 18 → 20 (Returns Flow)</button>
+    <button class="secondary" onclick="clearLog()">Clear Log</button>
+  </div>
+
   <!-- ========== EDGE CASE SECTION ========== -->
+  <hr class="section-divider" />
   <h2>🧪 Edge Case Testing</h2>
 
   <div class="card edge">
@@ -254,7 +415,22 @@
     </div>
   </div>
 
+  <div class="card edge">
+    <h3>Edge Case — Inactive Employee Login</h3>
+    <p class="small">Test 401 for inactive delivery staff.</p>
+    <div class="instructions">
+      <strong>Steps:</strong>
+      <ol>
+        <li>Run in DBeaver: <code>UPDATE delivery_staff SET is_active = false WHERE emp_id = 'EMP001';</code></li>
+        <li>Try delivery login with EMP001 → should get 401 "Employee account is inactive"</li>
+        <li><strong>Restore:</strong> <code>UPDATE delivery_staff SET is_active = true WHERE emp_id = 'EMP001';</code></li>
+      </ol>
+    </div>
+    <button class="danger" onclick="deliveryLoginInactive()">Test Inactive EMP Login</button>
+  </div>
+
   <!-- ========== VERIFICATION QUERIES ========== -->
+  <hr class="section-divider" />
   <h2>🔍 DBeaver Verification Queries</h2>
 
   <div class="card">
@@ -263,13 +439,29 @@
     <button class="secondary" onclick="copyVerificationSQL()">Copy Verification SQL to Clipboard</button>
   </div>
 
+  <div class="card">
+    <h3>Verification SQL (run after delivery completion)</h3>
+    <button class="secondary" onclick="copyDeliveryVerificationSQL()">Copy Delivery Verification SQL</button>
+  </div>
+
+  <div class="card">
+    <h3>Verification SQL (run after returns)</h3>
+    <button class="secondary" onclick="copyReturnsVerificationSQL()">Copy Returns Verification SQL</button>
+  </div>
+
   <!-- ========== VALKEY VERIFICATION ========== -->
   <div class="card">
     <h3>Valkey (Redis) Verification Commands</h3>
-    <p class="small">Run these in your terminal to verify Valkey state after dispatch.</p>
+    <p class="small">Run these in your terminal to verify Valkey state.</p>
     <div class="instructions">
+      <strong>After Dispatch:</strong><br/>
       <code>redis-cli GET emp:{emp_uuid}:active_batch</code> → returns the batch_id UUID string<br/>
-      <code>redis-cli TTL emp:{emp_uuid}:active_batch</code> → returns ~86400
+      <code>redis-cli TTL emp:{emp_uuid}:active_batch</code> → returns ~86400<br/><br/>
+      <strong>After Delivery Login:</strong><br/>
+      <code>redis-cli GET session:{session_token}</code> → returns the emp_id string (e.g. EMP001)<br/>
+      <code>redis-cli TTL session:{session_token}</code> → returns ~43200 (12h)<br/><br/>
+      <strong>After All Stops Completed:</strong><br/>
+      <code>redis-cli GET emp:{emp_uuid}:active_batch</code> → returns (nil) — batch cleared
     </div>
   </div>
 
@@ -293,6 +485,7 @@
 
     function getBase() { return document.getElementById('baseUrl').value.trim(); }
     function getToken() { return document.getElementById('token').value.trim(); }
+    function getDeliveryToken() { return document.getElementById('deliveryToken').value.trim(); }
 
     async function request(url, options) {
       const res = await fetch(url, options);
@@ -550,6 +743,377 @@
       log('Dispatch flow', '✅ Complete! Now verify in DBeaver and Valkey. See verification queries below.');
     }
 
+    // ====================== DELIVERY PORTAL FLOW ======================
+
+    async function deliveryLogin() {
+      try {
+        const empId = document.getElementById('deliveryEmpId').value.trim();
+        if (!empId) return log('Delivery login failed', 'Enter emp_id (e.g. EMP001).');
+
+        const body = await request(`${getBase()}/delivery/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emp_id: empId })
+        });
+
+        if (body.session_token) {
+          document.getElementById('deliveryToken').value = body.session_token;
+        }
+
+        log('POST /delivery/auth/login ✅', body);
+      } catch (err) {
+        log('POST /delivery/auth/login FAILED', err);
+      }
+    }
+
+    async function deliveryLoginInvalid() {
+      try {
+        const body = await request(`${getBase()}/delivery/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emp_id: 'NONEXISTENT_EMP_999' })
+        });
+        log('POST /delivery/auth/login (INVALID) — UNEXPECTED SUCCESS', body);
+      } catch (err) {
+        log('POST /delivery/auth/login (INVALID) — Expected 401', err);
+      }
+    }
+
+    async function deliveryLoginInactive() {
+      try {
+        const empId = document.getElementById('deliveryEmpId').value.trim() || 'EMP001';
+        const body = await request(`${getBase()}/delivery/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emp_id: empId })
+        });
+        log('Inactive EMP login — UNEXPECTED SUCCESS (is_active may still be true)', body);
+      } catch (err) {
+        log('Inactive EMP login — Expected 401', err);
+      }
+    }
+
+    async function getActiveBatch() {
+      try {
+        const token = getDeliveryToken();
+        if (!token) return log('Get active batch failed', 'No delivery session token. Login first.');
+
+        const body = await request(`${getBase()}/delivery/batch/active`, {
+          method: 'GET',
+          headers: { 'x-session-token': token }
+        });
+
+        if (body?.data?.id) {
+          document.getElementById('deliveryBatchId').value = body.data.id;
+        }
+
+        log('GET /delivery/batch/active', body);
+      } catch (err) {
+        log('GET /delivery/batch/active FAILED', err);
+      }
+    }
+
+    async function getBatchStops() {
+      try {
+        const token = getDeliveryToken();
+        const batchId = document.getElementById('deliveryBatchId').value.trim();
+
+        if (!token) return log('Get stops failed', 'No delivery session token.');
+        if (!batchId) return log('Get stops failed', 'No batch ID. Get active batch first.');
+
+        const body = await request(`${getBase()}/delivery/batch/${batchId}/stops`, {
+          method: 'GET',
+          headers: { 'x-session-token': token }
+        });
+
+        // Auto-fill first PENDING stop
+        if (body?.data?.length > 0) {
+          const firstPending = body.data.find(s => s.stop_status === 'PENDING' && s.is_unlocked);
+          if (firstPending) {
+            document.getElementById('currentStopId').value = firstPending.stop_id;
+            document.getElementById('deliverStopId').value = firstPending.stop_id;
+          }
+
+          // Log unlock status for each stop
+          const summary = body.data.map(s =>
+            `  Stop ${s.stop_number}: ${s.stop_status} | unlocked: ${s.is_unlocked} | ${s.address_line}`
+          ).join('\n');
+          log('GET /delivery/batch/:batchId/stops', `${body.data.length} stops:\n${summary}`);
+        }
+
+        log('GET /delivery/batch/:batchId/stops (raw)', body);
+      } catch (err) {
+        log('GET /delivery/batch/:batchId/stops FAILED', err);
+      }
+    }
+
+    async function deliverStop() {
+      try {
+        const token = getDeliveryToken();
+        const stopId = document.getElementById('deliverStopId').value.trim();
+
+        if (!token) return log('Deliver stop failed', 'No delivery session token.');
+        if (!stopId) return log('Deliver stop failed', 'No stop ID.');
+
+        const body = await request(`${getBase()}/delivery/stops/${stopId}/deliver`, {
+          method: 'PATCH',
+          headers: { 'x-session-token': token }
+        });
+
+        // Auto-fill next stop
+        if (body?.data?.next_stop_id) {
+          document.getElementById('currentStopId').value = body.data.next_stop_id;
+          document.getElementById('deliverStopId').value = body.data.next_stop_id;
+        }
+
+        log('PATCH /delivery/stops/:stopId/deliver', body);
+
+        if (body?.data?.batch_complete) {
+          log('🎉 BATCH COMPLETE', 'All stops delivered! Batch status should now be COMPLETED in DB.');
+        }
+      } catch (err) {
+        log('PATCH /delivery/stops/:stopId/deliver FAILED', err);
+      }
+    }
+
+    async function failStop() {
+      try {
+        const token = getDeliveryToken();
+        const stopId = document.getElementById('failStopId').value.trim();
+        const reason = document.getElementById('failureReason').value.trim();
+
+        if (!token) return log('Fail stop failed', 'No delivery session token.');
+        if (!stopId) return log('Fail stop failed', 'No stop ID.');
+
+        const body = await request(`${getBase()}/delivery/stops/${stopId}/fail`, {
+          method: 'PATCH',
+          headers: {
+            'x-session-token': token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ failure_reason: reason })
+        });
+
+        if (body?.data?.next_stop_id) {
+          document.getElementById('currentStopId').value = body.data.next_stop_id;
+          document.getElementById('deliverStopId').value = body.data.next_stop_id;
+        }
+
+        log('PATCH /delivery/stops/:stopId/fail', body);
+
+        if (body?.data?.batch_complete) {
+          log('🎉 BATCH COMPLETE', 'All stops resolved! Batch status should now be COMPLETED in DB.');
+        }
+      } catch (err) {
+        log('PATCH /delivery/stops/:stopId/fail FAILED', err);
+      }
+    }
+
+    async function tryOutOfOrderDelivery() {
+      try {
+        const token = getDeliveryToken();
+        const stopId = document.getElementById('outOfOrderStopId').value.trim();
+
+        if (!token) return log('Out-of-order test failed', 'No delivery session token.');
+        if (!stopId) return log('Out-of-order test failed', 'Set stop 2 ID.');
+
+        const body = await request(`${getBase()}/delivery/stops/${stopId}/deliver`, {
+          method: 'PATCH',
+          headers: { 'x-session-token': token }
+        });
+
+        log('Out-of-order delivery — UNEXPECTED SUCCESS', body);
+      } catch (err) {
+        log('Out-of-order delivery — Expected 403', err);
+      }
+    }
+
+    async function runDeliveryFlow() {
+      log('Delivery flow', '=== Starting Full Delivery Flow ===');
+
+      // Step 1: Login
+      log('Delivery flow', '--- Login ---');
+      await deliveryLogin();
+
+      const token = getDeliveryToken();
+      if (!token) return log('Delivery flow STOPPED', 'Login failed — no session token.');
+
+      // Step 2: Get active batch
+      log('Delivery flow', '--- Get Active Batch ---');
+      await getActiveBatch();
+
+      const batchId = document.getElementById('deliveryBatchId').value.trim();
+      if (!batchId) return log('Delivery flow STOPPED', 'No active batch found. Run dispatch flow first.');
+
+      // Step 3: Get stops
+      log('Delivery flow', '--- Get Batch Stops ---');
+      await getBatchStops();
+
+      // Step 4: Deliver all stops sequentially
+      log('Delivery flow', '--- Delivering all stops sequentially ---');
+
+      let stopsBody;
+      try {
+        stopsBody = await request(`${getBase()}/delivery/batch/${batchId}/stops`, {
+          method: 'GET',
+          headers: { 'x-session-token': token }
+        });
+      } catch (err) {
+        return log('Delivery flow STOPPED', 'Could not fetch stops.');
+      }
+
+      const pendingStops = (stopsBody?.data || []).filter(s => s.stop_status === 'PENDING');
+      log('Delivery flow', `${pendingStops.length} pending stops to deliver`);
+
+      for (let i = 0; i < pendingStops.length; i++) {
+        const stop = pendingStops[i];
+        log('Delivery flow', `--- Delivering stop ${stop.stop_number} (${stop.address_line}) ---`);
+
+        try {
+          const body = await request(`${getBase()}/delivery/stops/${stop.stop_id}/deliver`, {
+            method: 'PATCH',
+            headers: { 'x-session-token': token }
+          });
+
+          log(`Stop ${stop.stop_number} delivered`, body);
+
+          if (body?.data?.batch_complete) {
+            log('🎉 BATCH COMPLETE!', 'All stops delivered! batch.status = COMPLETED in DB.');
+            break;
+          }
+        } catch (err) {
+          log(`Stop ${stop.stop_number} delivery FAILED`, err);
+          break;
+        }
+      }
+
+      log('Delivery flow', '✅ Complete! Verify in DBeaver: batch.status=COMPLETED, all stops DELIVERED, all orders DELIVERED.');
+    }
+
+    // ====================== RETURNS FLOW ======================
+
+    async function listReturns() {
+      try {
+        const statusFilter = document.getElementById('returnStatusFilter').value;
+        let url = `${getBase()}/admin/returns`;
+        if (statusFilter) url += `?status=${statusFilter}`;
+
+        const body = await request(url, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+
+        // Auto-fill return ID from first result
+        if (body?.data?.length > 0) {
+          document.getElementById('returnId').value = body.data[0].id;
+          const summary = body.data.map(r =>
+            `  ${r.return_id} | ${r.status} | ${r.customer_name} | Order: ${r.order_number}`
+          ).join('\n');
+          log('GET /admin/returns', `${body.data.length} returns:\n${summary}`);
+        }
+
+        log('GET /admin/returns (raw)', body);
+      } catch (err) {
+        log('GET /admin/returns FAILED', err);
+      }
+    }
+
+    async function approveReturn() {
+      try {
+        const returnId = document.getElementById('returnId').value.trim();
+        if (!returnId) return log('Approve return failed', 'No return ID. List returns first.');
+
+        const body = await request(`${getBase()}/admin/returns/${returnId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            status: 'APPROVED',
+            admin_notes: document.getElementById('approveNotes').value
+          })
+        });
+
+        log('PATCH /admin/returns/:id → APPROVED', body);
+      } catch (err) {
+        log('PATCH approve return FAILED', err);
+      }
+    }
+
+    async function refundReturn() {
+      try {
+        const returnId = document.getElementById('returnId').value.trim();
+        if (!returnId) return log('Refund return failed', 'No return ID. List returns first.');
+
+        const body = await request(`${getBase()}/admin/returns/${returnId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            status: 'REFUNDED',
+            admin_notes: 'Refund processed',
+            refund_ref: document.getElementById('refundRef').value
+          })
+        });
+
+        log('PATCH /admin/returns/:id → REFUNDED', body);
+      } catch (err) {
+        log('PATCH refund return FAILED', err);
+      }
+    }
+
+    async function rejectReturn() {
+      try {
+        const returnId = document.getElementById('returnId').value.trim();
+        if (!returnId) return log('Reject return failed', 'No return ID. List returns first.');
+
+        const body = await request(`${getBase()}/admin/returns/${returnId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            status: 'REJECTED',
+            admin_notes: document.getElementById('rejectNotes').value
+          })
+        });
+
+        log('PATCH /admin/returns/:id → REJECTED', body);
+      } catch (err) {
+        log('PATCH reject return FAILED', err);
+      }
+    }
+
+    async function runReturnsFlow() {
+      if (!getToken()) {
+        log('Returns flow', 'No admin token — logging in first...');
+        await login();
+      }
+
+      log('Returns flow', '=== Starting Returns Flow ===');
+
+      // Step 1: List returns
+      log('Returns flow', '--- List Returns ---');
+      await listReturns();
+
+      const returnId = document.getElementById('returnId').value.trim();
+      if (!returnId) return log('Returns flow STOPPED', 'No returns found. Create a test return in DB first (see SQL above).');
+
+      // Step 2: Approve
+      log('Returns flow', '--- Approve Return ---');
+      await approveReturn();
+
+      // Step 3: Refund
+      log('Returns flow', '--- Refund Return ---');
+      await refundReturn();
+
+      log('Returns flow', '✅ Complete! Verify in DBeaver: return.status=REFUNDED, order.status=REFUNDED.');
+    }
+
     // ====================== SQL TEMPLATES ======================
 
     function copyTestSQL() {
@@ -674,6 +1238,128 @@ FROM dispatch_batches WHERE id = '${batchId}';
         log('Verification SQL', 'Copied to clipboard! Paste in DBeaver to verify dispatch results.');
       }).catch(() => {
         log('Verification SQL', sql);
+      });
+    }
+
+    function copyDeliveryVerificationSQL() {
+      const batchId = document.getElementById('deliveryBatchId').value.trim() || document.getElementById('batchId').value.trim() || '{batch_id}';
+      const sessionToken = getDeliveryToken() || '{session_token}';
+
+      const sql = `-- ============================================================
+-- DELIVERY VERIFICATION — Run after delivering all stops
+-- ============================================================
+
+-- 1. Check batch is COMPLETED
+SELECT id, status, completed_at FROM dispatch_batches WHERE id = '${batchId}';
+-- → status = COMPLETED, completed_at is set
+
+-- 2. Check all stops are DELIVERED (or FAILED)
+SELECT stop_number, status, delivered_at, failure_reason
+FROM batch_stops WHERE batch_id = '${batchId}'
+ORDER BY stop_number;
+-- → All rows should be DELIVERED or FAILED
+
+-- 3. Check all orders are updated
+SELECT o.id, o.order_number, o.status
+FROM orders o
+JOIN batch_stops bs ON bs.order_id = o.id
+WHERE bs.batch_id = '${batchId}';
+-- → All orders should be DELIVERED or FAILED
+
+-- ============================================================
+-- VALKEY VERIFICATION (run in terminal)
+-- ============================================================
+-- redis-cli GET session:${sessionToken}
+-- → should return emp_id string (e.g. EMP001) if session is still valid
+--
+-- redis-cli GET emp:{emp_uuid}:active_batch
+-- → should return (nil) after all stops completed
+`;
+      navigator.clipboard.writeText(sql).then(() => {
+        log('Delivery Verification SQL', 'Copied! Verify batch completion in DBeaver.');
+      }).catch(() => {
+        log('Delivery Verification SQL', sql);
+      });
+    }
+
+    function copyReturnsVerificationSQL() {
+      const returnId = document.getElementById('returnId').value.trim() || '{return_id}';
+
+      const sql = `-- ============================================================
+-- RETURNS VERIFICATION — Run after updating returns
+-- ============================================================
+
+-- 1. Check return status
+SELECT id, return_id, status, admin_notes, refund_ref, resolved_at
+FROM returns WHERE id = '${returnId}';
+-- → status should match your last update (APPROVED/REFUNDED/REJECTED)
+
+-- 2. If REFUNDED, verify order status was also updated
+SELECT o.id, o.order_number, o.status
+FROM orders o
+JOIN returns r ON r.order_id = o.id
+WHERE r.id = '${returnId}';
+-- → order.status should be REFUNDED
+
+-- 3. List all returns with full details
+SELECT r.return_id, r.status, r.admin_notes, r.refund_ref,
+       o.order_number, o.status AS order_status,
+       c.full_name AS customer_name
+FROM returns r
+JOIN orders o ON o.id = r.order_id
+JOIN customers c ON c.id = r.customer_id
+ORDER BY r.requested_at DESC;
+`;
+      navigator.clipboard.writeText(sql).then(() => {
+        log('Returns Verification SQL', 'Copied! Verify returns in DBeaver.');
+      }).catch(() => {
+        log('Returns Verification SQL', sql);
+      });
+    }
+
+    function copyReturnTestSQL() {
+      const sql = `-- ============================================================
+-- CREATE TEST RETURN DATA
+-- Run AFTER dispatching and delivering orders so you have DELIVERED orders
+-- ============================================================
+
+-- 1. Find delivered orders
+SELECT id, order_number, customer_id, status FROM orders
+WHERE status = 'DELIVERED' LIMIT 5;
+
+-- 2. Create a test return (replace {order_id} and {customer_id} with actual UUIDs)
+INSERT INTO returns (return_id, order_id, customer_id, reason)
+VALUES (
+  'RET-' || (SELECT order_number FROM orders WHERE id = '{order_id}') || '-X7K',
+  '{order_id}',
+  '{customer_id}',
+  'Item damaged during delivery'
+);
+
+-- 3. Verify the return was created
+SELECT * FROM returns ORDER BY requested_at DESC LIMIT 1;
+
+-- ============================================================
+-- ALTERNATIVE: Auto-create return from first DELIVERED order
+-- ============================================================
+-- DO $$
+-- DECLARE
+--   v_order_id UUID;
+--   v_customer_id UUID;
+--   v_order_number VARCHAR;
+-- BEGIN
+--   SELECT id, customer_id, order_number
+--   INTO v_order_id, v_customer_id, v_order_number
+--   FROM orders WHERE status = 'DELIVERED' LIMIT 1;
+--
+--   INSERT INTO returns (return_id, order_id, customer_id, reason)
+--   VALUES ('RET-' || v_order_number || '-X7K', v_order_id, v_customer_id, 'Item damaged during delivery');
+-- END $$;
+`;
+      navigator.clipboard.writeText(sql).then(() => {
+        log('Return Test SQL', 'Copied! Run in DBeaver to create a test return.');
+      }).catch(() => {
+        log('Return Test SQL', sql);
       });
     }
   </script>
