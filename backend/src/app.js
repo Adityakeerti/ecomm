@@ -29,4 +29,8 @@ const adminRoutes = require('./routes/adminRoutes');
 // Protected admin routes (require valid JWT)
 app.use('/admin', adminAuth, adminRoutes);
 
+// Delivery portal routes (session-based auth via Valkey)
+const deliveryRoutes = require('./routes/deliveryRoutes');
+app.use('/delivery', deliveryRoutes);
+
 module.exports = app;
