@@ -21,6 +21,17 @@ app.get('/test', (req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'test.html'));
 });
 
+// Dev-only: execute SQL from test.html (for automated test data setup)
+app.post('/test/sql', async (req, res) => {
+  const pool = require('./utils/db');
+  try {
+    const result = await pool.query(req.body.sql, req.body.params || []);
+    res.json({ success: true, data: result.rows, rowCount: result.rowCount });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // Admin auth routes (login, refresh — public; logout — protected)
 app.use('/admin/auth', adminAuthRoutes);
 

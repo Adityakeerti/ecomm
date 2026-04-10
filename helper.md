@@ -80,3 +80,96 @@ The main API runs on Express.js.
 | `npm start` | Start the Express server for production |
 
 Enjoy, and happy coding! 🚀
+
+---
+
+## 5. 🧹 Testing Artifacts — REMOVE BEFORE PRODUCTION
+
+> **⚠️ CAUTION: Remove ALL items listed below before deploying to production.**
+> Update this section after every testing session.
+
+### Files to Delete
+
+| File | Purpose | Added In |
+|------|---------|----------|
+| `test.html` | Browser-based one-click API test suite (Steps 2–9) | Steps 8-9 |
+| `db/04_test_dispatch_data.sql` | Manual test data seeding for dispatch engine | Step 7 |
+
+### Code to Remove from `backend/src/app.js`
+
+| Lines (approx) | Code | Risk Level |
+|-----------------|------|------------|
+| ~20–22 | `app.get('/test', ...)` | Low — serves test page |
+| ~24–32 | `app.post('/test/sql', ...)` | **🔴 CRITICAL** — executes arbitrary SQL via HTTP |
+
+```diff
+  // REMOVE THIS BLOCK ↓↓↓
+- // Serve test.html at /test
+- app.get('/test', (req, res) => {
+-   res.sendFile(path.join(__dirname, '..', '..', 'test.html'));
+- });
+-
+- // Dev-only: execute SQL from test.html
+- app.post('/test/sql', async (req, res) => {
+-   const pool = require('./utils/db');
+-   try {
+-     const result = await pool.query(req.body.sql, req.body.params || []);
+-     res.json({ success: true, data: result.rows, rowCount: result.rowCount });
+-   } catch (err) {
+-     res.status(400).json({ success: false, error: err.message });
+-   }
+- });
+  // REMOVE THIS BLOCK ↑↑↑
+```
+
+### Test Data Cleanup SQL
+
+Run in DBeaver/psql before production:
+
+```sql
+-- 1. Remove test returns
+DELETE FROM returns WHERE reason LIKE '%auto test%';
+
+-- 2. Remove test batch_stops + dispatch_batches
+DELETE FROM batch_stops WHERE batch_id IN (
+  SELECT id FROM dispatch_batches WHERE zone_id IN (
+    SELECT id FROM delivery_zones WHERE label LIKE 'Auto Zone%'
+  )
+);
+DELETE FROM dispatch_batches WHERE zone_id IN (
+  SELECT id FROM delivery_zones WHERE label LIKE 'Auto Zone%'
+);
+
+-- 3. Remove test orders
+DELETE FROM orders WHERE customer_display_id LIKE 'Auto-%';
+
+-- 4. Remove test addresses
+DELETE FROM delivery_addresses WHERE address_line IN (
+  'Belanganj, NH2, Agra','Shahganj, MG Road, Agra',
+  'Fatehabad Road, Agra','Sadar Bazaar, Agra Cantt','Mehtab Bagh, Agra'
+);
+
+-- 5. Remove test customers
+DELETE FROM customers WHERE full_name LIKE 'Auto%' OR email LIKE '%@t.com';
+
+-- 6. Remove test staff, zones, products
+DELETE FROM delivery_staff WHERE full_name LIKE 'AutoStaff%';
+DELETE FROM delivery_zones WHERE label LIKE 'Auto Zone%';
+DELETE FROM products WHERE name LIKE 'Test Product%' OR slug LIKE 'test-prod-%';
+```
+
+### Valkey Keys to Flush
+
+```bash
+redis-cli KEYS "session:*"         | xargs redis-cli DEL
+redis-cli KEYS "emp:*:active_batch"| xargs redis-cli DEL
+redis-cli KEYS "refresh:*"        | xargs redis-cli DEL
+```
+
+### ✅ Post-Cleanup Verification Checklist
+
+- [ ] `app.js` has NO `/test` or `/test/sql` routes
+- [ ] `test.html` deleted from project root
+- [ ] `04_test_dispatch_data.sql` deleted from `db/`
+- [ ] No test data remains (`SELECT COUNT(*) FROM customers WHERE full_name LIKE 'Auto%';` → 0)
+- [ ] Valkey has no stale test session keys
