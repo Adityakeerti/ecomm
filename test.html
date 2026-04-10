@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Products API Tester</title>
+  <title>Admin Operations API Tester</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -55,8 +55,8 @@
   </style>
 </head>
 <body>
-  <h1>Admin Products & Inventory Tester</h1>
-  <p class="small">Use this page to run the full API flow without Postman.</p>
+  <h1>Admin Operations Tester</h1>
+  <p class="small">Use this page to test products, zones, cities, categories, and staff endpoints.</p>
 
   <div class="card">
     <h3>Config</h3>
@@ -64,6 +64,7 @@
     <div class="row"><label>Username</label><input id="username" value="superadmin" /></div>
     <div class="row"><label>Password</label><input id="password" type="password" value="admin123" /></div>
     <div class="row"><label>Category ID</label><input id="categoryId" value="1" /></div>
+    <div class="row"><label>City ID (for zone)</label><input id="cityId" value="1" /></div>
   </div>
 
   <div class="card">
@@ -71,6 +72,9 @@
     <div class="row"><label>Access Token</label><input id="token" class="mono" placeholder="Auto-filled after login" /></div>
     <div class="row"><label>Product ID</label><input id="productId" class="mono" placeholder="Auto-filled after product creation" /></div>
     <div class="row"><label>Variant ID</label><input id="variantId" class="mono" placeholder="Auto-filled after variant creation" /></div>
+    <div class="row"><label>Zone ID</label><input id="zoneId" class="mono" placeholder="Auto-filled after zone creation" /></div>
+    <div class="row"><label>Staff ID #1</label><input id="staffId1" class="mono" placeholder="Auto-filled after first staff creation" /></div>
+    <div class="row"><label>Staff ID #2</label><input id="staffId2" class="mono" placeholder="Auto-filled after second staff creation" /></div>
   </div>
 
   <div class="card">
@@ -117,8 +121,46 @@
   </div>
 
   <div class="card">
+    <h3>8) Zone CRUD + Toggle</h3>
+    <div class="row"><label>Zone Label</label><input id="zoneLabel" value="Agra Central Test Zone" /></div>
+    <div class="row"><label>Center Lat</label><input id="zoneLat" value="27.1767" /></div>
+    <div class="row"><label>Center Lng</label><input id="zoneLng" value="78.0081" /></div>
+    <div class="row"><label>Radius KM</label><input id="zoneRadius" value="6.5" /></div>
+    <button onclick="createZone()">Create Zone</button>
+    <button class="secondary" onclick="listZones()">List Zones</button>
+    <button class="secondary" onclick="updateZone()">Update Zone</button>
+    <button class="secondary" onclick="toggleZone()">Toggle Zone</button>
+  </div>
+
+  <div class="card">
+    <h3>9) Cities + Categories</h3>
+    <div class="row"><label>City Name</label><input id="newCityName" value="Agra Test City" /></div>
+    <div class="row"><label>City State</label><input id="newCityState" value="Uttar Pradesh" /></div>
+    <button onclick="createCity()">Create City</button>
+    <button class="secondary" onclick="listCities()">List Cities</button>
+    <hr style="border-color:#334155;opacity:.4;" />
+    <div class="row"><label>Category Name</label><input id="newCategoryName" value="Test Category" /></div>
+    <div class="row"><label>Category Slug</label><input id="newCategorySlug" value="test-category" /></div>
+    <button onclick="createCategory()">Create Category</button>
+    <button class="secondary" onclick="listCategories()">List Categories</button>
+  </div>
+
+  <div class="card">
+    <h3>10) Staff + History + Toggle</h3>
+    <div class="row"><label>Staff #1 Name</label><input id="staffName1" value="Ravi Kumar" /></div>
+    <div class="row"><label>Staff #1 Phone</label><input id="staffPhone1" value="+919999111111" /></div>
+    <button onclick="createStaffOne()">Create Staff #1</button>
+    <div class="row"><label>Staff #2 Name</label><input id="staffName2" value="Mohan Singh" /></div>
+    <div class="row"><label>Staff #2 Phone</label><input id="staffPhone2" value="+919999222222" /></div>
+    <button class="secondary" onclick="createStaffTwo()">Create Staff #2</button>
+    <button class="secondary" onclick="toggleStaffOne()">Toggle Staff #1</button>
+    <button class="secondary" onclick="getStaffHistoryOne()">Get Staff #1 History</button>
+  </div>
+
+  <div class="card">
     <h3>Run Entire Flow</h3>
     <button onclick="runAll()">Run 1 → 7</button>
+    <button onclick="runTaskFlow()">Run Task Flow (Zones + Staff)</button>
     <button class="secondary" onclick="clearLog()">Clear Log</button>
   </div>
 
@@ -154,6 +196,10 @@
 
     function randomSlug(prefix) {
       return `${prefix}-${Date.now()}`;
+    }
+
+    function randomName(prefix) {
+      return `${prefix} ${Date.now()}`;
     }
 
     async function login() {
@@ -307,6 +353,217 @@
       }
     }
 
+    async function listZones() {
+      try {
+        const body = await request(`${getBase()}/admin/zones`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        log('List zones success', body);
+      } catch (err) {
+        log('List zones failed', err);
+      }
+    }
+
+    async function createZone() {
+      try {
+        const body = await request(`${getBase()}/admin/zones`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            city_id: Number(document.getElementById('cityId').value),
+            label: randomName(document.getElementById('zoneLabel').value),
+            center_lat: Number(document.getElementById('zoneLat').value),
+            center_lng: Number(document.getElementById('zoneLng').value),
+            radius_km: Number(document.getElementById('zoneRadius').value),
+            min_order_count: 5,
+            cutoff_time: '14:00:00'
+          })
+        });
+        if (body?.data?.id) document.getElementById('zoneId').value = body.data.id;
+        log('Create zone success (Agra checkpoint)', body);
+      } catch (err) {
+        log('Create zone failed', err);
+      }
+    }
+
+    async function updateZone() {
+      try {
+        const zoneId = document.getElementById('zoneId').value.trim();
+        if (!zoneId) return log('Update zone failed', 'Set zoneId first.');
+        const body = await request(`${getBase()}/admin/zones/${zoneId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            label: `Updated ${new Date().toLocaleTimeString()}`,
+            radius_km: Number(document.getElementById('zoneRadius').value) + 1
+          })
+        });
+        log('Update zone success', body);
+      } catch (err) {
+        log('Update zone failed', err);
+      }
+    }
+
+    async function toggleZone() {
+      try {
+        const zoneId = document.getElementById('zoneId').value.trim();
+        if (!zoneId) return log('Toggle zone failed', 'Set zoneId first.');
+        const body = await request(`${getBase()}/admin/zones/${zoneId}/toggle`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        log('Toggle zone success (is_active flips)', body);
+      } catch (err) {
+        log('Toggle zone failed', err);
+      }
+    }
+
+    async function listCities() {
+      try {
+        const body = await request(`${getBase()}/admin/cities`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        log('List cities success', body);
+      } catch (err) {
+        log('List cities failed', err);
+      }
+    }
+
+    async function createCity() {
+      try {
+        const body = await request(`${getBase()}/admin/cities`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: randomName(document.getElementById('newCityName').value),
+            state: document.getElementById('newCityState').value
+          })
+        });
+        log('Create city success', body);
+      } catch (err) {
+        log('Create city failed', err);
+      }
+    }
+
+    async function listCategories() {
+      try {
+        const body = await request(`${getBase()}/admin/categories`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        log('List categories success', body);
+      } catch (err) {
+        log('List categories failed', err);
+      }
+    }
+
+    async function createCategory() {
+      try {
+        const slug = `${document.getElementById('newCategorySlug').value}-${Date.now()}`;
+        const body = await request(`${getBase()}/admin/categories`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: randomName(document.getElementById('newCategoryName').value),
+            slug
+          })
+        });
+        log('Create category success', body);
+      } catch (err) {
+        log('Create category failed', err);
+      }
+    }
+
+    async function createStaffOne() {
+      try {
+        const zoneId = document.getElementById('zoneId').value.trim();
+        if (!zoneId) return log('Create staff #1 failed', 'Create zone first to get zoneId.');
+
+        const body = await request(`${getBase()}/admin/staff`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            full_name: document.getElementById('staffName1').value,
+            phone_number: document.getElementById('staffPhone1').value,
+            zone_id: zoneId
+          })
+        });
+        if (body?.data?.id) document.getElementById('staffId1').value = body.data.id;
+        log('Create staff #1 success (expect EMP-AGR-0001)', body);
+      } catch (err) {
+        log('Create staff #1 failed', err);
+      }
+    }
+
+    async function createStaffTwo() {
+      try {
+        const zoneId = document.getElementById('zoneId').value.trim();
+        if (!zoneId) return log('Create staff #2 failed', 'Create zone first to get zoneId.');
+
+        const body = await request(`${getBase()}/admin/staff`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            full_name: document.getElementById('staffName2').value,
+            phone_number: document.getElementById('staffPhone2').value,
+            zone_id: zoneId
+          })
+        });
+        if (body?.data?.id) document.getElementById('staffId2').value = body.data.id;
+        log('Create staff #2 success (expect EMP-AGR-0002)', body);
+      } catch (err) {
+        log('Create staff #2 failed', err);
+      }
+    }
+
+    async function toggleStaffOne() {
+      try {
+        const staffId = document.getElementById('staffId1').value.trim();
+        if (!staffId) return log('Toggle staff failed', 'Create first staff record first.');
+        const body = await request(`${getBase()}/admin/staff/${staffId}/toggle`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        log('Toggle staff #1 success (is_active flips)', body);
+      } catch (err) {
+        log('Toggle staff #1 failed', err);
+      }
+    }
+
+    async function getStaffHistoryOne() {
+      try {
+        const staffId = document.getElementById('staffId1').value.trim();
+        if (!staffId) return log('Staff history failed', 'Create first staff record first.');
+        const body = await request(`${getBase()}/admin/staff/${staffId}/history`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        log('Staff history success', body);
+      } catch (err) {
+        log('Staff history failed', err);
+      }
+    }
+
     async function runAll() {
       await login();
       await createProductNoImage();
@@ -314,6 +571,17 @@
       await restock();
       await toggleProduct();
       log('Run all', 'Complete. Use create/update image buttons for file uploads.');
+    }
+
+    async function runTaskFlow() {
+      await login();
+      await createZone();
+      await toggleZone();
+      await createStaffOne();
+      await createStaffTwo();
+      await toggleStaffOne();
+      await getStaffHistoryOne();
+      log('Task flow', 'Completed task checkpoint flow for zones/staff.');
     }
   </script>
 </body>
