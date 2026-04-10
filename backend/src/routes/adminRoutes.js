@@ -5,6 +5,7 @@ const adminOrdersController = require('../controllers/adminOrdersController');
 const adminProductsController = require('../controllers/adminProductsController');
 const adminDispatchController = require('../controllers/adminDispatchController');
 const adminReturnsController = require('../controllers/adminReturnsController');
+const adminOperationsController = require('../controllers/adminOperationsController');
 const upload = require('../middleware/upload');
 
 // Overview
@@ -34,5 +35,24 @@ router.post('/dispatch/batches/:id/dispatch', adminDispatchController.dispatchBa
 // Returns
 router.get('/returns', adminReturnsController.listReturns);
 router.patch('/returns/:id', adminReturnsController.updateReturn);
+
+// Zones
+router.get('/zones', adminOperationsController.listZones);
+router.post('/zones', adminOperationsController.createZone);
+router.put('/zones/:id', adminOperationsController.updateZone);
+router.patch('/zones/:id/toggle', adminOperationsController.toggleZone);
+
+// Cities
+router.get('/cities', adminOperationsController.listCities);
+router.post('/cities', adminOperationsController.createCity);
+
+// Categories
+router.get('/categories', adminOperationsController.listCategories);
+router.post('/categories', adminOperationsController.createCategory);
+
+// Staff
+router.post('/staff', adminOperationsController.createStaff);
+router.patch('/staff/:id/toggle', adminOperationsController.toggleStaff);
+router.get('/staff/:id/history', adminOperationsController.getStaffHistory);
 
 module.exports = router;
