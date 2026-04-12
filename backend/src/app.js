@@ -44,4 +44,22 @@ app.use('/admin', adminAuth, adminRoutes);
 const deliveryRoutes = require('./routes/deliveryRoutes');
 app.use('/delivery', deliveryRoutes);
 
+// Public storefront APIs (no auth)
+app.use('/v1/products', require('./routes/products'));
+app.use('/v1/zones', require('./routes/zones'));
+app.use('/cart', require('./routes/cart'));
+app.use('/checkout', require('./routes/checkout'));
+app.use('/payments', require('./routes/payments'));
+app.use('/orders', require('./routes/orders'));
+app.use('/track', require('./routes/track'));
+app.use('/returns', require('./routes/returns'));
+
+// Serve test pages
+app.get('/p2d1', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'p2d1_test.html'));
+});
+app.get('/p2d2', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'p2d2_test.html'));
+});
+
 module.exports = app;

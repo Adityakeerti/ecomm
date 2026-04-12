@@ -55,4 +55,21 @@ router.post('/staff', adminOperationsController.createStaff);
 router.patch('/staff/:id/toggle', adminOperationsController.toggleStaff);
 router.get('/staff/:id/history', adminOperationsController.getStaffHistory);
 
+// System / Utils
+const emailService = require('../services/emailService');
+router.post('/test-email', async (req, res) => {
+  try {
+    const { to } = req.body;
+    if (!to) return res.status(400).json({ success: false, message: 'to email is required' });
+    const result = await emailService.sendTestEmail(to);
+    if (result.sent) {
+      return res.json({ success: true, message: 'Test email sent successfully' });
+    } else {
+      return res.status(400).json({ success: false, message: result.reason });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;
