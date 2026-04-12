@@ -93,6 +93,8 @@ Enjoy, and happy coding! 🚀
 | File | Purpose | Added In |
 |------|---------|----------|
 | `test.html` | Browser-based one-click API test suite (Steps 2–9) | Steps 8-9 |
+| `p2d1_test.html` | Phase 2 Dev1 test suite (Products & Storefront) | P2 Dev1 |
+| `p2d2_test.html` | Phase 2 Dev2 test suite (Steps 2–9 repack) | P2 Dev2 |
 | `db/04_test_dispatch_data.sql` | Manual test data seeding for dispatch engine | Step 7 |
 
 ### Code to Remove from `backend/src/app.js`
@@ -101,6 +103,8 @@ Enjoy, and happy coding! 🚀
 |-----------------|------|------------|
 | ~20–22 | `app.get('/test', ...)` | Low — serves test page |
 | ~24–32 | `app.post('/test/sql', ...)` | **🔴 CRITICAL** — executes arbitrary SQL via HTTP |
+| ~47–50 | `app.get('/p2d1', ...)` and `app.get('/p2d2', ...)` | Low — serves P2 test pages |
+| In payments.js | `router.post('/test-signature', ...)` | **🔴 CRITICAL** — generates valid PhonePe signatures |
 
 ```diff
   // REMOVE THIS BLOCK ↓↓↓
@@ -154,8 +158,8 @@ DELETE FROM customers WHERE full_name LIKE 'Auto%' OR email LIKE '%@t.com';
 
 -- 6. Remove test staff, zones, products
 DELETE FROM delivery_staff WHERE full_name LIKE 'AutoStaff%';
-DELETE FROM delivery_zones WHERE label LIKE 'Auto Zone%';
-DELETE FROM products WHERE name LIKE 'Test Product%' OR slug LIKE 'test-prod-%';
+DELETE FROM delivery_zones WHERE label LIKE 'Auto Zone%' OR label LIKE 'AutoZone%';
+DELETE FROM products WHERE name LIKE 'Test Product%' OR slug LIKE 'test-prod-%' OR name LIKE 'AutoProd%';
 ```
 
 ### Valkey Keys to Flush
