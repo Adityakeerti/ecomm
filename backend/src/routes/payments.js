@@ -5,6 +5,7 @@ const webhookController = require('../controllers/webhookController');
 
 // Public payment endpoints
 router.post('/initiate', checkoutController.initiatePayment);
+router.post('/dev-initiate', checkoutController.devInitiatePayment);
 
 // PhonePe webhook — PhonePe calls this after every payment event
 router.post('/webhook', webhookController.handleWebhook);

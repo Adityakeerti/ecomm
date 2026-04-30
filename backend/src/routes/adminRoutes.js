@@ -15,8 +15,10 @@ router.get('/overview', adminOverviewController.getOverview);
 router.get('/orders', adminOrdersController.listOrders);
 router.get('/orders/:id', adminOrdersController.getOrderDetails);
 router.patch('/orders/:id/status', adminOrdersController.updateOrderStatus);
+router.patch('/orders/status/bulk', adminOrdersController.bulkUpdateOrderStatus);
 
 // Products
+router.get('/products', adminProductsController.listProducts);
 router.post('/products', upload.single('image'), adminProductsController.createProduct);
 router.put('/products/:id', upload.single('image'), adminProductsController.updateProduct);
 router.patch('/products/:id/toggle', adminProductsController.toggleActive);
@@ -29,6 +31,7 @@ router.patch('/inventory/:variantId/restock', adminProductsController.restockInv
 
 // Dispatch
 router.get('/dispatch/ready', adminDispatchController.getDispatchReady);
+router.get('/dispatch/dispatched-orders', adminDispatchController.getDispatchedOrders);
 router.post('/dispatch/batches/:id/assign', adminDispatchController.assignBatch);
 router.post('/dispatch/batches/:id/dispatch', adminDispatchController.dispatchBatch);
 
@@ -41,19 +44,28 @@ router.get('/zones', adminOperationsController.listZones);
 router.post('/zones', adminOperationsController.createZone);
 router.put('/zones/:id', adminOperationsController.updateZone);
 router.patch('/zones/:id/toggle', adminOperationsController.toggleZone);
+router.delete('/zones/:id', adminOperationsController.deleteZone);
 
 // Cities
 router.get('/cities', adminOperationsController.listCities);
 router.post('/cities', adminOperationsController.createCity);
+router.delete('/cities/:id', adminOperationsController.deleteCity);
 
 // Categories
 router.get('/categories', adminOperationsController.listCategories);
 router.post('/categories', adminOperationsController.createCategory);
+router.delete('/categories/:id', adminOperationsController.deleteCategory);
 
 // Staff
+router.get('/staff', adminOperationsController.listStaff);
 router.post('/staff', adminOperationsController.createStaff);
 router.patch('/staff/:id/toggle', adminOperationsController.toggleStaff);
 router.get('/staff/:id/history', adminOperationsController.getStaffHistory);
+router.delete('/staff/:id', adminOperationsController.deleteStaff);
+
+// Enums
+router.get('/enums/order-statuses', adminOperationsController.getOrderStatuses);
+router.get('/enums/return-statuses', adminOperationsController.getReturnStatuses);
 
 // System / Utils
 const emailService = require('../services/emailService');

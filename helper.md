@@ -177,3 +177,86 @@ redis-cli KEYS "refresh:*"        | xargs redis-cli DEL
 - [ ] `04_test_dispatch_data.sql` deleted from `db/`
 - [ ] No test data remains (`SELECT COUNT(*) FROM customers WHERE full_name LIKE 'Auto%';` → 0)
 - [ ] Valkey has no stale test session keys
+
+---
+
+## 6. 🛒 Running the Storefront (Next.js Frontend)
+
+### Prerequisites
+- Backend must be running on `http://localhost:4000` (see §3 above).
+- Docker containers (PostgreSQL + Valkey) must be up (`docker compose up -d`).
+
+### Start the frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open `http://localhost:3000` in your browser.
+
+### Storefront Pages
+
+| URL | Purpose |
+|-----|---------|
+| `/` | Homepage — hero, categories, product grid |
+| `/shop` | All products with category filter chips |
+| `/p/[slug]` | Product detail + variant selector + add to cart |
+| `/cart` | Cart with qty stepper and remove |
+| `/checkout` | Checkout form → order creation |
+| `/order/[orderNumber]` | Order confirmation + WhatsApp button |
+| `/track` | Phone → orders list → full order detail |
+| `/returns` | Return request form |
+
+---
+
+## 7. 🔴 PhonePe Integration Checklist
+
+> **Context:** The storefront is currently running in **dev mode**. After a successful `POST /payments/initiate`, instead of redirecting to the real PhonePe payment URL, the app goes directly to `/order/[orderNumber]` to simulate a successful payment. This is intentional — PhonePe credentials are not configured yet.
+
+When you have your PhonePe merchant credentials, make the following changes:
+
+### Backend Changes
+
+| File | What to change |
+|------|---------------|
+| `backend/.env` | Add `PHONEPE_MERCHANT_ID`, `PHONEPE_MERCHANT_KEY`, `PHONEPE_REDIRECT_URL`, `PHONEPE_KEY_INDEX` |
+| `backend/src/controllers/checkoutController.js` | Line ~196: Replace the mock `payment_url` string with a real PhonePe API call using their SDK. See [PhonePe PG Docs](https://developer.phonepe.com/). |
+| `backend/src/controllers/webhookController.js` | Verify webhook signature using `PHONEPE_MERCHANT_KEY`. Already structured for this — just wire in the real signature check. |
+
+### Frontend Changes
+
+| File | Line (approx) | What to change |
+|------|--------------|----------------|
+| `frontend/app/checkout/page.js` | ~117 | **Remove** `router.push(...)` and **replace with** `window.location.href = data.payment_url;` |
+| `frontend/app/checkout/page.js` | ~122 | Remove the dev-mode disclaimer paragraph below the Pay button |
+
+```diff
+// frontend/app/checkout/page.js  (~line 117)
+
+- // DEV MODE: skip PhonePe redirect
+- router.push(`/order/${data.order_number}`);
+
++ // PRODUCTION: redirect to real PhonePe payment page
++ if (typeof sessionStorage !== 'undefined') {
++   sessionStorage.setItem('pending_order', data.order_number);
++ }
++ window.location.href = data.payment_url;
+```
+
+### PhonePe Redirect URL
+PhonePe needs a return URL after payment. Configure your PhonePe dashboard callback to:
+```
+https://yourdomain.com/order/{orderNumber}
+```
+Or for local testing (use ngrok):
+```
+https://<your-ngrok-id>.ngrok.io/order/{orderNumber}
+```
+
+### After Wiring PhonePe
+- [ ] Real payment succeeds → webhook fires → `payment_status` → `PAID` → `status` → `PROCESSING`
+- [ ] Webhook endpoint verified: `POST /payments/webhook` handles PhonePe callback signature
+- [ ] Remove dev-mode comment from `checkout/page.js`
+- [ ] Remove `router` import from `checkout/page.js` (no longer needed if using `window.location.href`)
+- [ ] Remove `/test-signature` route from `backend/src/routes/payments.js` (marked **🔴 CRITICAL** in §5)

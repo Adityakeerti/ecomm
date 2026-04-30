@@ -13,10 +13,15 @@ const SESSION_TTL = 43200; // 12 hours in seconds
  */
 exports.login = async (req, res) => {
   try {
-    const { emp_id } = req.body;
+    const { emp_id, pin } = req.body;
 
     if (!emp_id) {
       return res.status(400).json({ success: false, message: 'emp_id is required' });
+    }
+
+    const requiredPin = process.env.DELIVERY_LOGIN_PIN;
+    if (requiredPin && String(pin || '') !== requiredPin) {
+      return res.status(401).json({ success: false, message: 'Invalid delivery login pin' });
     }
 
     // Find delivery staff by emp_id

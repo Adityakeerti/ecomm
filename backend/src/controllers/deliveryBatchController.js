@@ -11,7 +11,27 @@ exports.getActiveBatch = async (req, res) => {
     const emp = req.emp;
 
     // Read active batch ID from Valkey
-    const batchId = await valkey.get(`emp:${emp.id}:active_batch`);
+    let batchId = await valkey.get(`emp:${emp.id}:active_batch`);
+
+    // Fallback to DB when Valkey key is missing (e.g. cache flush/restart).
+    if (!batchId) {
+      const { rows: activeRows } = await pool.query(
+        `SELECT id
+         FROM dispatch_batches
+         WHERE emp_id = $1 AND status = 'DISPATCHED'
+         ORDER BY dispatched_at DESC NULLS LAST, created_at DESC
+         LIMIT 1`,
+        [emp.id]
+      );
+      if (activeRows.length > 0) {
+        batchId = activeRows[0].id;
+        try {
+          await valkey.set(`emp:${emp.id}:active_batch`, batchId);
+        } catch (vErr) {
+          console.warn('Failed to repopulate active batch key:', vErr.message);
+        }
+      }
+    }
 
     if (!batchId) {
       return res.json({
@@ -30,15 +50,18 @@ exports.getActiveBatch = async (req, res) => {
               (SELECT COUNT(*) FROM batch_stops WHERE batch_id = db.id AND status IN ('DELIVERED', 'FAILED')) AS completed_stops
        FROM dispatch_batches db
        JOIN delivery_zones dz ON dz.id = db.zone_id
-       WHERE db.id = $1`,
+       WHERE db.id = $1 AND db.status = 'DISPATCHED'`,
       [batchId]
     );
 
     if (rows.length === 0) {
+      try {
+        await valkey.del(`emp:${emp.id}:active_batch`);
+      } catch {}
       return res.json({
         success: true,
         data: null,
-        message: 'Batch not found in database (may have been removed)'
+        message: 'No active dispatched batch found'
       });
     }
 
@@ -86,6 +109,7 @@ exports.getBatchStops = async (req, res) => {
           c.full_name          AS customer_name,
           c.phone_number       AS customer_phone,
           da.address_line,
+          da.landmark,
           da.lat,
           da.lng,
           o.total_paise,
@@ -109,7 +133,7 @@ exports.getBatchStops = async (req, res) => {
        WHERE bs.batch_id = $1
        GROUP BY bs.id, bs.batch_id, bs.stop_number, bs.status, bs.failure_reason,
                 bs.delivered_at, o.order_number, o.customer_display_id,
-                c.full_name, c.phone_number, da.address_line, da.lat, da.lng, o.total_paise
+                c.full_name, c.phone_number, da.address_line, da.landmark, da.lat, da.lng, o.total_paise
        ORDER BY bs.stop_number`,
       [batchId]
     );

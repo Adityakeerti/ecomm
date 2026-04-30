@@ -15,42 +15,47 @@ function generateReturnId(orderNumber) {
 
 /**
  * POST /returns
- * Body: { order_number, phone, reason }
- * Verify: order exists + ownership + status=DELIVERED + no existing return.
+ * Body: { order_number, reason }
+ * Auth required.
+ * Verify: order exists + ownership + delivered within 7 days + no existing return.
  */
 exports.createReturn = async (req, res) => {
   try {
-    const { order_number, phone, reason } = req.body;
+    const { order_number, reason } = req.body;
+    const customerId = req.user?.userId;
 
     if (!order_number) return error(res, 'order_number is required');
-    if (!phone || !/^\+91\d{10}$/.test(phone)) {
-      return error(res, 'phone must be in +91XXXXXXXXXX format');
-    }
     if (!reason || reason.trim().length < 5) {
       return error(res, 'reason is required (min 5 chars)');
     }
+    if (!customerId) {
+      return error(res, 'Unauthorized', [], 401);
+    }
 
-    // Fetch order + customer for ownership check
+    // Fetch order for ownership check
     const { rows } = await pool.query(
-      `SELECT o.id, o.order_number, o.status, o.customer_id, c.phone_number
+      `SELECT o.id, o.order_number, o.status, o.customer_id, bs.delivered_at
        FROM orders o
-       JOIN customers c ON c.id = o.customer_id
-       WHERE o.order_number = $1`,
-      [order_number]
+       LEFT JOIN batch_stops bs ON bs.order_id = o.id AND bs.status = 'DELIVERED'
+       WHERE o.order_number = $1 AND o.customer_id = $2`,
+      [order_number, customerId]
     );
 
     if (rows.length === 0) return notFound(res, 'Order not found');
 
     const order = rows[0];
 
-    // Ownership check
-    if (order.phone_number !== phone) {
-      return error(res, 'Phone number does not match this order', [], 403);
-    }
-
     // Only DELIVERED orders can be returned
     if (order.status !== 'DELIVERED') {
       return error(res, `Returns are only allowed for delivered orders. Current status: ${order.status}`, [], 422);
+    }
+    if (!order.delivered_at) {
+      return error(res, 'Delivery date not found for this order.', [], 422);
+    }
+    const deliveredAt = new Date(order.delivered_at);
+    const sevenDaysAgo = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000));
+    if (deliveredAt < sevenDaysAgo) {
+      return error(res, 'Return window has expired. Returns are allowed only within 7 days of delivery.', [], 422);
     }
 
     // Check for existing return
@@ -94,6 +99,66 @@ exports.createReturn = async (req, res) => {
   } catch (err) {
     console.error('createReturn error:', err);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+/**
+ * GET /returns/eligible-orders
+ * Auth required. Returns delivered orders in the last 7 days
+ * that do not already have a return request.
+ */
+exports.getEligibleOrders = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT
+         o.order_number,
+         o.total_paise,
+         bs.delivered_at
+       FROM orders o
+       JOIN batch_stops bs ON bs.order_id = o.id
+       LEFT JOIN returns r ON r.order_id = o.id
+       WHERE o.customer_id = $1
+         AND o.status = 'DELIVERED'
+         AND bs.status = 'DELIVERED'
+         AND bs.delivered_at >= (NOW() - INTERVAL '7 days')
+         AND r.id IS NULL
+       ORDER BY bs.delivered_at DESC`,
+      [req.user.userId]
+    );
+
+    return ok(res, { orders: rows, count: rows.length });
+  } catch (err) {
+    console.error('getEligibleOrders error:', err);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+/**
+ * GET /returns/my-requests
+ * Auth required. Returns current user's return requests.
+ */
+exports.listMyReturns = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT
+         r.return_id,
+         r.status,
+         r.reason,
+         r.requested_at,
+         r.resolved_at,
+         r.admin_notes,
+         o.order_number
+       FROM returns r
+       JOIN orders o ON o.id = r.order_id
+       WHERE r.customer_id = $1
+       ORDER BY r.requested_at DESC`,
+      [req.user.userId]
+    );
+
+    return ok(res, { returns: rows, count: rows.length });
+  } catch (err) {
+    console.error('listMyReturns error:', err);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 

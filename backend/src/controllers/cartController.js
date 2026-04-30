@@ -3,7 +3,7 @@ const valkey = require('../utils/valkey');
 const pool = require('../utils/db');
 const { ok, notFound, error } = require('../utils/response');
 
-const CART_TTL = 900; // 15 minutes in seconds
+const CART_TTL = 3600; // 60 minutes in seconds
 
 /**
  * POST /cart/session

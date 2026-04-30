@@ -14,6 +14,37 @@ const parseOptionalJson = (value) => {
 };
 
 /**
+ * GET /admin/products
+ * Admin list of products (does NOT depend on variants/inventory).
+ */
+exports.listProducts = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT
+          p.id,
+          p.name,
+          p.slug,
+          p.description,
+          p.base_price_paise,
+          p.category_id,
+          c.name AS category_name,
+          p.instagram_post_url,
+          p.image_url,
+          p.is_active,
+          p.created_at,
+          p.updated_at
+       FROM products p
+       JOIN categories c ON c.id = p.category_id
+       ORDER BY p.created_at DESC`
+    );
+    return res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('List products error:', err);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+/**
  * POST /admin/products
  * Body (multipart/form-data or JSON):
  *   name, slug, description, base_price_paise, category_id,
@@ -25,6 +56,9 @@ exports.createProduct = async (req, res) => {
     const {
       name, slug, description, base_price_paise,
       category_id, instagram_post_url, meta,
+      create_default_variant,
+      default_sku,
+      initial_stock,
     } = req.body;
 
     // Validation
@@ -42,6 +76,31 @@ exports.createProduct = async (req, res) => {
         success: false,
         message: 'base_price_paise and category_id must be positive integers',
       });
+    }
+
+    const categoryCheck = await client.query(
+      'SELECT id FROM categories WHERE id = $1 AND is_active = TRUE',
+      [parsedCategoryId]
+    );
+    if (categoryCheck.rowCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Selected category is missing or inactive',
+      });
+    }
+
+    const createDefaultVariant =
+      create_default_variant === undefined
+        ? true
+        : String(create_default_variant).toLowerCase() === 'true';
+
+    const parsedInitialStockRaw =
+      initial_stock === undefined || initial_stock === null || initial_stock === ''
+        ? 0
+        : Number.parseInt(initial_stock, 10);
+    const parsedInitialStock = Number.isNaN(parsedInitialStockRaw) || parsedInitialStockRaw < 0 ? null : parsedInitialStockRaw;
+    if (createDefaultVariant && parsedInitialStock === null) {
+      return res.status(400).json({ success: false, message: 'initial_stock must be a number >= 0' });
     }
 
     await client.query('BEGIN');
@@ -75,9 +134,65 @@ exports.createProduct = async (req, res) => {
       ]
     );
 
+    const product = rows[0];
+
+    let defaultVariant = null;
+    let defaultInventory = null;
+
+    if (createDefaultVariant) {
+      const baseSku = (default_sku && String(default_sku).trim())
+        ? String(default_sku).trim()
+        : `${String(slug).toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '')}-DEFAULT`;
+
+      // In case of SKU collision, add a short random suffix.
+      const skuCandidates = [
+        baseSku,
+        `${baseSku}-${uuidv4().slice(0, 6).toUpperCase()}`,
+      ];
+
+      let inserted = null;
+      let lastErr = null;
+      for (const skuCandidate of skuCandidates) {
+        try {
+          const { rows: vRows } = await client.query(
+            `INSERT INTO product_variants (product_id, size, colour, sku, price_paise)
+             VALUES ($1, NULL, NULL, $2, $3)
+             RETURNING *`,
+            [product.id, skuCandidate, parsedBasePrice]
+          );
+          inserted = vRows[0];
+          break;
+        } catch (e) {
+          lastErr = e;
+          // 23505 = unique violation (sku)
+          if (e && e.code !== '23505') throw e;
+        }
+      }
+
+      if (!inserted) throw lastErr || new Error('Could not create default variant');
+
+      defaultVariant = inserted;
+
+      const { rows: invRows } = await client.query(
+        `INSERT INTO inventory (variant_id, quantity, reserved)
+         VALUES ($1, $2, 0)
+         RETURNING *`,
+        [defaultVariant.id, parsedInitialStock ?? 0]
+      );
+
+      defaultInventory = invRows[0];
+    }
+
     await client.query('COMMIT');
 
-    res.status(201).json({ success: true, data: rows[0] });
+    res.status(201).json({
+      success: true,
+      data: {
+        product,
+        default_variant: defaultVariant,
+        default_inventory: defaultInventory,
+      },
+    });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Create product error:', err);
@@ -157,6 +272,16 @@ exports.updateProduct = async (req, res) => {
     }
 
     values.push(id);
+
+    if (req.body.category_id !== undefined) {
+      const activeCategoryCheck = await pool.query(
+        'SELECT id FROM categories WHERE id = $1 AND is_active = TRUE',
+        [parsePositiveInt(req.body.category_id)]
+      );
+      if (activeCategoryCheck.rowCount === 0) {
+        return res.status(400).json({ success: false, message: 'Selected category is missing or inactive' });
+      }
+    }
 
     const { rows, rowCount } = await pool.query(
       `UPDATE products SET ${setClauses.join(', ')} WHERE id = $${paramIndex} RETURNING *`,

@@ -15,10 +15,12 @@ const cityCodeFromName = (cityName) => cityName.substring(0, 3).toUpperCase();
 const generateEmpId = async (cityName) => {
   const code = cityCodeFromName(cityName);
   const result = await pool.query(
-    'SELECT COUNT(*) FROM delivery_staff WHERE emp_id LIKE $1',
+    `SELECT COALESCE(MAX((regexp_match(emp_id, '([0-9]{4})$'))[1]::int), 0) AS last_seq
+     FROM delivery_staff
+     WHERE emp_id LIKE $1`,
     [`EMP-${code}-%`]
   );
-  const seq = String(Number.parseInt(result.rows[0].count, 10) + 1).padStart(4, '0');
+  const seq = String(Number.parseInt(result.rows[0].last_seq, 10) + 1).padStart(4, '0');
   return `EMP-${code}-${seq}`;
 };
 
@@ -29,9 +31,12 @@ const respondPgError = (err, res, context) => {
   if (!err || typeof err.code !== 'string') return false;
 
   if (err.code === '23503') {
+    const isDelete = context && context.toLowerCase().includes('delete');
     res.status(400).json({
       success: false,
-      message: 'Referenced record does not exist (check city_id and foreign keys)',
+      message: isDelete 
+        ? 'Cannot delete this record because it is currently in use by other items (e.g. zones or products).'
+        : 'Referenced record does not exist (check city_id and foreign keys)',
       ...(isDev && err.detail ? { detail: err.detail } : {}),
     });
     return true;
@@ -230,6 +235,24 @@ exports.toggleZone = async (req, res) => {
   }
 };
 
+// Staff list
+exports.listStaff = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT ds.id, ds.emp_id, ds.full_name, ds.phone_number, ds.is_active,
+              dz.label AS zone_label, c.name AS city_name
+       FROM delivery_staff ds
+       LEFT JOIN delivery_zones dz ON dz.id = ds.zone_id
+       LEFT JOIN cities c ON c.id = dz.city_id
+       ORDER BY ds.created_at DESC`
+    );
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('List staff error:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
 // Cities
 exports.listCities = async (req, res) => {
   try {
@@ -405,6 +428,215 @@ exports.getStaffHistory = async (req, res) => {
     });
   } catch (err) {
     console.error('Staff history error:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+// Deletion Methods
+exports.deleteCity = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rowCount } = await pool.query('DELETE FROM cities WHERE id = $1', [id]);
+    if (rowCount === 0) return res.status(404).json({ success: false, message: 'City not found' });
+    return res.json({ success: true, message: 'City deleted successfully' });
+  } catch (err) {
+    // Cities are referenced by delivery_zones and delivery_addresses (and then orders).
+    // If referenced, hard-delete will fail; "delete" should behave like a safe archive.
+    if (err && err.code === '23503') {
+      try {
+        const { id } = req.params;
+        const { rows, rowCount } = await pool.query(
+          'UPDATE cities SET is_active = FALSE WHERE id = $1 RETURNING id, name, state, country, is_active',
+          [id]
+        );
+        if (rowCount === 0) return res.status(404).json({ success: false, message: 'City not found' });
+        return res.json({
+          success: true,
+          message: 'City is in use and cannot be deleted. It has been deactivated instead.',
+          data: rows[0],
+        });
+      } catch (innerErr) {
+        if (respondPgError(innerErr, res, 'Deactivate city fallback error')) return;
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+      }
+    }
+    if (respondPgError(err, res, 'Delete city error')) return;
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+exports.deleteCategory = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    await client.query('BEGIN');
+    const { rows: catRows, rowCount: categoryCount } = await client.query(
+      'SELECT id, name, slug FROM categories WHERE id = $1',
+      [id]
+    );
+    if (categoryCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+
+    const { rows: prodRows } = await client.query(
+      'SELECT id FROM products WHERE category_id = $1',
+      [id]
+    );
+    const productIds = prodRows.map((p) => p.id);
+
+    let deletedVariants = 0;
+    let deletedInventory = 0;
+    let deletedProducts = 0;
+
+    if (productIds.length > 0) {
+      const { rows: variantRows } = await client.query(
+        'SELECT id FROM product_variants WHERE product_id = ANY($1::uuid[])',
+        [productIds]
+      );
+      const variantIds = variantRows.map((v) => v.id);
+      deletedVariants = variantIds.length;
+
+      if (variantIds.length > 0) {
+        const invDelete = await client.query(
+          'DELETE FROM inventory WHERE variant_id = ANY($1::uuid[])',
+          [variantIds]
+        );
+        deletedInventory = invDelete.rowCount;
+      }
+
+      const variantDelete = await client.query(
+        'DELETE FROM product_variants WHERE product_id = ANY($1::uuid[])',
+        [productIds]
+      );
+      deletedVariants = variantDelete.rowCount;
+
+      const productDelete = await client.query(
+        'DELETE FROM products WHERE id = ANY($1::uuid[])',
+        [productIds]
+      );
+      deletedProducts = productDelete.rowCount;
+    }
+
+    await client.query('DELETE FROM categories WHERE id = $1', [id]);
+    await client.query('COMMIT');
+    return res.json({
+      success: true,
+      message: 'Category and linked catalog rows deleted successfully',
+      data: {
+        ...catRows[0],
+        deleted_products: deletedProducts,
+        deleted_variants: deletedVariants,
+        deleted_inventory_rows: deletedInventory,
+      },
+    });
+  } catch (err) {
+    if (err && err.code === '23503') {
+      try { await client.query('ROLLBACK'); } catch {}
+      return res.status(409).json({
+        success: false,
+        message: 'Category cannot be hard-deleted because some linked products/variants are referenced by orders.',
+      });
+    }
+    try { await client.query('ROLLBACK'); } catch {}
+    if (respondPgError(err, res, 'Delete category error')) return;
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  } finally {
+    client.release();
+  }
+};
+
+exports.deleteZone = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rowCount } = await pool.query('DELETE FROM delivery_zones WHERE id = $1', [id]);
+    if (rowCount === 0) return res.status(404).json({ success: false, message: 'Zone not found' });
+    return res.json({ success: true, message: 'Zone deleted successfully' });
+  } catch (err) {
+    // Zones are referenced by orders, staff and batches. If referenced, hard-delete will fail.
+    // In that case, "delete" should behave like a safe archive (deactivate).
+    if (err && err.code === '23503') {
+      try {
+        const { id } = req.params;
+        const { rows, rowCount } = await pool.query(
+          'UPDATE delivery_zones SET is_active = FALSE WHERE id = $1 RETURNING id, label, is_active',
+          [id]
+        );
+        if (rowCount === 0) return res.status(404).json({ success: false, message: 'Zone not found' });
+        return res.json({
+          success: true,
+          message: 'Zone is in use and cannot be deleted. It has been deactivated instead.',
+          data: rows[0],
+        });
+      } catch (innerErr) {
+        if (respondPgError(innerErr, res, 'Deactivate zone fallback error')) return;
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+      }
+    }
+    if (respondPgError(err, res, 'Delete zone error')) return;
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+exports.deleteStaff = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rowCount } = await pool.query('DELETE FROM delivery_staff WHERE id = $1', [id]);
+    if (rowCount === 0) return res.status(404).json({ success: false, message: 'Staff not found' });
+    return res.json({ success: true, message: 'Staff deleted successfully' });
+  } catch (err) {
+    // Staff may be referenced by dispatch_batches.emp_id. If referenced, hard-delete will fail.
+    // In that case, "delete" should behave like a safe archive (deactivate).
+    if (err && err.code === '23503') {
+      try {
+        const { id } = req.params;
+        const { rows, rowCount } = await pool.query(
+          'UPDATE delivery_staff SET is_active = FALSE WHERE id = $1 RETURNING id, emp_id, full_name, is_active',
+          [id]
+        );
+        if (rowCount === 0) return res.status(404).json({ success: false, message: 'Staff not found' });
+        return res.json({
+          success: true,
+          message: 'Staff is in use and cannot be deleted. It has been deactivated instead.',
+          data: rows[0],
+        });
+      } catch (innerErr) {
+        if (respondPgError(innerErr, res, 'Deactivate staff fallback error')) return;
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+      }
+    }
+    if (respondPgError(err, res, 'Delete staff error')) return;
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+// Enum values
+exports.getOrderStatuses = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT enumlabel AS value
+       FROM pg_enum
+       WHERE enumtypid = 'order_status'::regtype
+       ORDER BY enumsortorder`
+    );
+    res.json({ success: true, data: rows.map(r => r.value) });
+  } catch (err) {
+    console.error('Get order statuses error:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+exports.getReturnStatuses = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT enumlabel AS value
+       FROM pg_enum
+       WHERE enumtypid = 'return_status'::regtype
+       ORDER BY enumsortorder`
+    );
+    res.json({ success: true, data: rows.map(r => r.value) });
+  } catch (err) {
+    console.error('Get return statuses error:', err);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

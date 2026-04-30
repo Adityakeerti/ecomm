@@ -1,0 +1,23 @@
+-- =============================================================================
+-- Add landmark support to saved addresses
+-- =============================================================================
+-- This migration adds landmark field support to the saved_addresses JSONB column
+-- No schema change needed since saved_addresses is already JSONB
+
+-- Example of updated saved_addresses structure:
+-- [
+--   {
+--     "label": "Home",
+--     "full_name": "John Doe",
+--     "phone": "+919876543210",
+--     "email": "john@example.com",
+--     "address_line": "Flat 4B, Sunrise Apartments, 12 MG Road",
+--     "landmark": "Near City Mall",
+--     "pincode": "282001",
+--     "lat": 27.1767,
+--     "lng": 78.0081
+--   }
+-- ]
+
+-- No SQL changes required - this is a documentation file
+-- The backend and frontend will handle the new 'landmark' field in JSONB

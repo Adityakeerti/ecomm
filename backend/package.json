@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "seed": "node scripts/seed.js",
+    "create:user-test": "node scripts/create-user-test.js"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +21,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.4.1",
     "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",

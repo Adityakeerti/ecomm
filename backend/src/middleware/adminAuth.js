@@ -8,7 +8,11 @@ module.exports = (req, res, next) => {
   }
 
   try {
-    req.admin = jwt.verify(auth.split(' ')[1], process.env.JWT_SECRET);
+    const decoded = jwt.verify(auth.split(' ')[1], process.env.JWT_SECRET);
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Forbidden: admin token required' });
+    }
+    req.admin = decoded;
     next();
   } catch {
     res.status(401).json({ success: false, message: 'Invalid token' });

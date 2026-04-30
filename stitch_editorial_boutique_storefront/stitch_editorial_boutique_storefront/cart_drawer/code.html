@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Boutique Cart</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Noto+Serif:ital,wght@0,500;0,600;0,700;0,900;1,900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#1a1c1c",
+                        "secondary": "#5d5f5e",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#b8c3ff",
+                        "primary-fixed-dim": "#b8c3ff",
+                        "surface-container": "#eeeeee",
+                        "on-tertiary-fixed": "#380d00",
+                        "on-tertiary-container": "#ffece6",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#2f3131",
+                        "on-background": "#1a1c1c",
+                        "outline-variant": "#c4c5d9",
+                        "on-secondary-fixed-variant": "#454747",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbcf",
+                        "background": "#f9f9f9",
+                        "secondary-fixed-dim": "#c6c6c6",
+                        "primary-container": "#2e5bff",
+                        "surface": "#f9f9f9",
+                        "surface-container-low": "#f3f3f3",
+                        "on-secondary-container": "#636564",
+                        "surface-tint": "#124af0",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#0040e0",
+                        "on-tertiary-fixed-variant": "#812800",
+                        "surface-container-high": "#e8e8e8",
+                        "tertiary-container": "#c24100",
+                        "surface-variant": "#e2e2e2",
+                        "secondary-fixed": "#e2e2e2",
+                        "outline": "#747688",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#e2e2e2",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f9f9f9",
+                        "inverse-on-surface": "#f1f1f1",
+                        "tertiary": "#993100",
+                        "on-primary-fixed-variant": "#0035be",
+                        "surface-dim": "#dadada",
+                        "surface-container-highest": "#e2e2e2",
+                        "primary-fixed": "#dde1ff",
+                        "tertiary-fixed-dim": "#ffb59b",
+                        "on-surface": "#1a1c1c",
+                        "on-surface-variant": "#434656",
+                        "on-primary-container": "#efefff",
+                        "on-primary-fixed": "#001356"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "stack-sm": "16px",
+                        "margin-x": "16px",
+                        "gutter": "16px",
+                        "container-max": "1440px",
+                        "stack-lg": "64px",
+                        "stack-md": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "h3": ["Noto Serif"],
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1": ["Noto Serif"],
+                        "h2": ["Noto Serif"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "1.5", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "h3": ["24px", {"lineHeight": "1.3", "letterSpacing": "0em", "fontWeight": "500"}],
+                        "button": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "h1": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "h2": ["28px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md text-body-md antialiased min-h-screen flex flex-col">
+<!-- TopAppBar (Background Context) -->
+<header class="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-margin-x py-gutter bg-surface-container-lowest/90 backdrop-blur-md border-b border-on-surface hidden md:flex">
+<button class="text-on-surface hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined">search</span>
+</button>
+<span class="font-h2 text-h2 font-black italic tracking-tighter text-on-surface uppercase">BOUTIQUE</span>
+<button class="text-primary-container hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined">shopping_bag</span>
+</button>
+</header>
+<!-- Main Content (Behind Overlay) -->
+<main class="flex-grow pt-[120px] px-margin-x hidden md:block">
+<div class="max-w-container-max mx-auto grid grid-cols-12 gap-gutter">
+<div class="col-span-12 md:col-span-10 md:col-start-2 border border-on-surface bg-surface-variant h-[618px] flex items-center justify-center relative overflow-hidden">
+<img alt="Editorial Fashion" class="absolute inset-0 w-full h-full object-cover opacity-60 grayscale" data-alt="high fashion editorial shot of a woman in an oversized tailored suit standing in a stark brutalist architectural space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlO75BVkWXoU92usJbxhJjgs7XSRvr2M9rXRF52SOsKqEQEeUNjP1Jd0j9gBK21jN6k9U8E5wssiVk4oA7aZz47MJmzrot5Jbo9oivM2YQg_RXIJrAVC0YQJ1PvW9ko5Y9yjFesgiz0RL6dgJ7jsX9GZUff3RsAYxFNUOzC7R5DPlOLpJBG4FcgrrycyDnHSThq8BfkNNHDYdZ4-6nC1VQcqpEDo5Ixj-qIyN5gFJZdalx0xUx_PS950PBhLhRMOm337UIdyF5dzeP"/>
+<div class="relative z-10 bg-surface-container-lowest p-stack-md border border-on-surface text-center">
+<h1 class="font-h1 text-h1 text-on-surface mb-stack-sm">THE FALL COLLECTION</h1>
+<p class="font-body-lg text-body-lg text-secondary">A study in structure and form.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Overlay Backdrop -->
+<div class="fixed inset-0 bg-on-surface/30 backdrop-blur-sm z-50 transition-opacity ease-in-out duration-300 hidden md:block"></div>
+<!-- NavigationDrawer: Cart Variant (Mobile Native Feel) -->
+<aside class="fixed inset-0 z-[70] flex flex-col h-full w-full bg-surface-container-lowest transition-all ease-in-out duration-300 translate-x-0">
+<!-- Header -->
+<div class="px-margin-x py-stack-sm flex justify-between items-center border-b border-surface-variant sticky top-0 bg-surface-container-lowest z-10">
+<h2 class="font-h3 text-h3 font-black italic text-on-surface">YOUR BAG</h2>
+<button class="text-on-surface hover:opacity-70 transition-opacity p-2 -mr-2">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Scrollable Cart Items -->
+<div class="flex-grow overflow-y-auto px-margin-x py-stack-md flex flex-col gap-stack-md pb-32">
+<!-- Cart Item 1 -->
+<div class="flex gap-stack-sm relative group">
+<img alt="Product Thumbnail" class="w-[100px] h-[133px] object-cover border border-transparent group-hover:border-on-surface transition-colors" data-alt="high fashion minimalist white silk blouse on a dark marble surface with harsh dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA21XuP6VBVkA95tX1EcPcos_JGk5IY9A1fVC5ieQy8FrffC9yiQPnelhhU6m_UcPEjEFUcBmeYm4jahQR8LMd1t1Pzm-i9TaLxhQrF6jp0a3MD2Y3BjKeO15edrc-PquEFhb7xSGS5ckK_XqyJsxHehw-Qun9LhWtjscdaU0IxB-x5Urlxq7CmZfUNKqztC4ZC40i_-ZgbNU1z4MtSFmzi2rWpZqT14DtV6SC8W53RNAf0LBqck1Vokc6KnbvJDfjZ1sS-YtF1JQ3s"/>
+<div class="flex-1 flex flex-col justify-between py-1">
+<div>
+<p class="font-label-caps text-label-caps text-secondary mb-1 uppercase">Studio Nicholson</p>
+<h3 class="font-body-md text-body-md text-on-surface font-semibold leading-tight">Volume Silk Blouse</h3>
+<p class="font-body-md text-body-md text-secondary mt-1 text-sm">Size: 2 | Color: Bone</p>
+</div>
+<div class="flex justify-between items-end mt-stack-sm">
+<!-- Quantity Adjuster -->
+<div class="flex items-center border border-on-surface w-fit h-[44px]">
+<button class="w-[44px] h-full text-on-surface hover:bg-surface-variant transition-colors flex items-center justify-center active:bg-surface-dim">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+<span class="font-button text-button text-on-surface w-[40px] h-full flex items-center justify-center border-x border-on-surface bg-surface">1</span>
+<button class="w-[44px] h-full text-on-surface hover:bg-surface-variant transition-colors flex items-center justify-center active:bg-surface-dim">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<p class="font-button text-button text-on-surface text-lg">$450</p>
+</div>
+</div>
+</div>
+<div class="w-full h-px bg-surface-variant"></div>
+<!-- Cart Item 2 -->
+<div class="flex gap-stack-sm relative group">
+<img alt="Product Thumbnail" class="w-[100px] h-[133px] object-cover border border-transparent group-hover:border-on-surface transition-colors" data-alt="architectural structured leather handbag in matte black sitting on a concrete plinth" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqbM0k-jT0sjY8v3l2QzGm7KHZt97nPxZWEEhuGD9xaUK6pBuXQLA2u2WrGxWACmoyt6LjsVQ49QsAP02vXkzSXCR5QOOQuLb3hdbpqFaFoiIbpe2994FKv72VGTRsgrxLSUQcCC4QOsco6DXFg33OMNDnzPYiu0dxdK7pve3dCLVnSAyJmsf7u2yQl0zfcy7V0osOJK9cDnTbIZPvvp-qVyEQEBMumwz55lwDJlFGjjoR1HHDy9fbrCD8SiQ7xMdaeN0-4pLKpUWX"/>
+<div class="flex-1 flex flex-col justify-between py-1">
+<div>
+<p class="font-label-caps text-label-caps text-secondary mb-1 uppercase">Lemaire</p>
+<h3 class="font-body-md text-body-md text-on-surface font-semibold leading-tight">Croissant Bag</h3>
+<p class="font-body-md text-body-md text-secondary mt-1 text-sm">OS | Color: Black</p>
+</div>
+<div class="flex justify-between items-end mt-stack-sm">
+<!-- Quantity Adjuster -->
+<div class="flex items-center border border-on-surface w-fit h-[44px]">
+<button class="w-[44px] h-full text-on-surface hover:bg-surface-variant transition-colors flex items-center justify-center active:bg-surface-dim">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+<span class="font-button text-button text-on-surface w-[40px] h-full flex items-center justify-center border-x border-on-surface bg-surface">1</span>
+<button class="w-[44px] h-full text-on-surface hover:bg-surface-variant transition-colors flex items-center justify-center active:bg-surface-dim">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<p class="font-button text-button text-on-surface text-lg">$1,295</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer / Actions (Sticky Bottom) -->
+<div class="fixed bottom-0 left-0 right-0 p-margin-x border-t-2 border-on-surface bg-surface-container-lowest flex flex-col gap-stack-sm pb-8">
+<div class="flex justify-between items-end mb-2">
+<span class="font-body-lg text-body-lg text-secondary">Subtotal</span>
+<span class="font-h2 text-h2 text-on-surface font-black">$1,745</span>
+</div>
+<!-- Primary Action -->
+<button class="w-full bg-primary-container text-white font-button text-button py-[18px] rounded-full flex justify-center items-center gap-[8px] active:scale-95 transition-all uppercase">
+                Checkout Now
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_cart_checkout</span>
+</button>
+<!-- Secondary Action -->
+<button class="w-full border border-on-surface text-on-surface font-button text-button py-[18px] rounded-full flex justify-center items-center gap-[8px] active:bg-surface-variant transition-colors uppercase">
+                View Saved Items
+                <span class="material-symbols-outlined">favorite</span>
+</button>
+<!-- Tertiary Action -->
+<button class="w-full text-secondary font-button text-button py-[12px] flex justify-center items-center gap-[8px] active:text-on-surface transition-colors uppercase mt-1">
+<span class="material-symbols-outlined">arrow_back</span>
+                Continue Shopping
+            </button>
+</div>
+</aside>
+</body></html>

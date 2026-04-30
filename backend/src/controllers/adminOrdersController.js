@@ -1,5 +1,26 @@
 const pool = require('../utils/db');
 
+const STATUS_ALIASES = {
+  DISPATCH: 'DISPATCHED',
+  DISPATCHING: 'DISPATCHED'
+};
+
+async function getOrderStatuses() {
+  const { rows } = await pool.query(
+    `SELECT enumlabel
+     FROM pg_enum
+     WHERE enumtypid = 'order_status'::regtype
+     ORDER BY enumsortorder`
+  );
+  return rows.map(r => r.enumlabel);
+}
+
+function normalizeStatus(input) {
+  if (!input || typeof input !== 'string') return null;
+  const trimmed = input.trim().toUpperCase();
+  return STATUS_ALIASES[trimmed] || trimmed;
+}
+
 exports.listOrders = async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
@@ -97,10 +118,18 @@ exports.getOrderDetails = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const status = normalizeStatus(req.body?.status);
 
     if (!status) {
       return res.status(400).json({ success: false, message: 'Status is required' });
+    }
+
+    const allowedStatuses = await getOrderStatuses();
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Allowed statuses: ${allowedStatuses.join(', ')}`
+      });
     }
 
     const { rowCount } = await pool.query(
@@ -116,5 +145,44 @@ exports.updateOrderStatus = async (req, res) => {
   } catch (err) {
     console.error('Update order error:', err);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+exports.bulkUpdateOrderStatus = async (req, res) => {
+  try {
+    const orderIds = Array.isArray(req.body?.order_ids) ? req.body.order_ids : [];
+    const status = normalizeStatus(req.body?.status);
+
+    if (orderIds.length === 0) {
+      return res.status(400).json({ success: false, message: 'order_ids is required' });
+    }
+
+    if (!status) {
+      return res.status(400).json({ success: false, message: 'Status is required' });
+    }
+
+    const allowedStatuses = await getOrderStatuses();
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Allowed statuses: ${allowedStatuses.join(', ')}`
+      });
+    }
+
+    const { rowCount } = await pool.query(
+      `UPDATE orders
+       SET status = $1, updated_at = NOW()
+       WHERE id = ANY($2::uuid[])`,
+      [status, orderIds]
+    );
+
+    return res.json({
+      success: true,
+      message: `Updated ${rowCount} order(s) to ${status}`,
+      data: { updated: rowCount, status }
+    });
+  } catch (err) {
+    console.error('Bulk update order status error:', err);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

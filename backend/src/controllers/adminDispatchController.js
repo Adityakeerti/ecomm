@@ -2,13 +2,54 @@ const pool = require('../utils/db');
 const valkey = require('../utils/valkey');
 const { optimiseRoute } = require('../utils/routeOptimiser');
 
+async function getDispatchableStatuses() {
+  const { rows } = await pool.query(
+    `SELECT enumlabel
+     FROM pg_enum
+     WHERE enumtypid = 'order_status'::regtype
+     ORDER BY enumsortorder`
+  );
+  const available = new Set(rows.map(r => r.enumlabel));
+  const dispatchable = ['PENDING'];
+  if (available.has('PROCESSING')) dispatchable.push('PROCESSING');
+  return dispatchable;
+}
+
 /**
  * GET /admin/dispatch/ready
  * Query v_dispatch_ready view — shows zones meeting both threshold conditions
  */
 exports.getDispatchReady = async (req, res) => {
   try {
-    const { rows } = await pool.query(`SELECT * FROM v_dispatch_ready`);
+    const dispatchableStatuses = await getDispatchableStatuses();
+    const { rows } = await pool.query(
+      `SELECT
+          dz.id AS zone_id,
+          dz.label AS zone_label,
+          ct.name AS city,
+          COUNT(o.id) AS pending_order_count,
+          dz.min_order_count,
+          dz.cutoff_time,
+          MIN(o.created_at) AS oldest_order_at,
+          db.id AS batch_id,
+          db.emp_id,
+          db.status AS batch_status
+       FROM delivery_zones dz
+       JOIN cities ct ON ct.id = dz.city_id
+       LEFT JOIN orders o ON o.zone_id = dz.id
+                        AND o.status = ANY($1::order_status[])
+                        AND o.payment_status IN ('SUCCESS', 'INITIATED')
+       LEFT JOIN dispatch_batches db ON db.zone_id = dz.id
+                                   AND db.batch_date = CURRENT_DATE
+                                   AND db.status IN ('OPEN', 'READY')
+       WHERE dz.is_active = TRUE
+       GROUP BY dz.id, dz.label, ct.name, dz.min_order_count, dz.cutoff_time, db.id, db.emp_id, db.status
+       HAVING
+         (((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kolkata')::time >= dz.cutoff_time) AND COUNT(o.id) >= dz.min_order_count)
+         OR db.status IN ('OPEN', 'READY')`
+      ,
+      [dispatchableStatuses]
+    );
 
     // For zones that don't have a batch yet, auto-create one
     for (const row of rows) {
@@ -20,6 +61,8 @@ exports.getDispatchReady = async (req, res) => {
           [row.zone_id]
         );
         row.batch_id = batchRows[0].id;
+        row.emp_id = null;
+        row.batch_status = 'READY';
       } else {
         // Update existing batch to READY if it's currently OPEN
         await pool.query(
@@ -27,6 +70,15 @@ exports.getDispatchReady = async (req, res) => {
            WHERE id = $1 AND status = 'OPEN'`,
           [row.batch_id]
         );
+        // Fetch the latest emp_id and status from the batch (view may not expose these)
+        const { rows: batchDetail } = await pool.query(
+          `SELECT emp_id, status FROM dispatch_batches WHERE id = $1`,
+          [row.batch_id]
+        );
+        if (batchDetail.length > 0) {
+          row.emp_id = batchDetail[0].emp_id ?? null;
+          row.batch_status = batchDetail[0].status;
+        }
       }
     }
 
@@ -34,6 +86,38 @@ exports.getDispatchReady = async (req, res) => {
   } catch (err) {
     console.error('Get dispatch ready error:', err);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+/**
+ * GET /admin/dispatch/dispatched-orders
+ * Shows latest orders already marked as DISPATCHED (manual or batched).
+ */
+exports.getDispatchedOrders = async (req, res) => {
+  try {
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit, 10) || 100));
+    const { rows } = await pool.query(
+      `SELECT
+          id,
+          order_number,
+          customer_name,
+          customer_phone,
+          zone_label,
+          total_paise,
+          status,
+          payment_status,
+          batch_id,
+          created_at
+       FROM v_order_summary
+       WHERE status = 'DISPATCHED'
+       ORDER BY created_at DESC
+       LIMIT $1`,
+      [limit]
+    );
+    return res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('Get dispatched orders error:', err);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -63,8 +147,9 @@ exports.assignBatch = async (req, res) => {
     const batch = batchRows[0];
 
     // Validate EMP belongs to the batch's zone
+    // emp_id here is the human-readable string (e.g. "EMP001"), not the UUID
     const { rows: empRows } = await pool.query(
-      `SELECT id, zone_id FROM delivery_staff WHERE id = $1 AND is_active = TRUE`,
+      `SELECT id, zone_id FROM delivery_staff WHERE emp_id = $1 AND is_active = TRUE`,
       [emp_id]
     );
 
@@ -79,10 +164,11 @@ exports.assignBatch = async (req, res) => {
       });
     }
 
-    // Assign the EMP to the batch
+    // Assign the EMP's UUID id (not the emp_id string) to the batch
+    const staffUuid = empRows[0].id;
     await pool.query(
       `UPDATE dispatch_batches SET emp_id = $1 WHERE id = $2`,
-      [emp_id, id]
+      [staffUuid, id]
     );
 
     res.json({ success: true, message: 'Employee assigned to batch successfully' });
@@ -107,44 +193,41 @@ exports.dispatchBatch = async (req, res) => {
 
   try {
     const { id } = req.params;
+    const dispatchableStatuses = await getDispatchableStatuses();
 
     // Fetch the batch
-    const { rows: batchRows } = await pool.query(
+    const { rows: batchRows } = await client.query(
       `SELECT id, zone_id, emp_id, status FROM dispatch_batches WHERE id = $1`,
       [id]
     );
 
     if (batchRows.length === 0) {
-      client.release();
       return res.status(404).json({ success: false, message: 'Batch not found' });
     }
 
     const batch = batchRows[0];
 
     if (batch.status === 'DISPATCHED') {
-      client.release();
       return res.status(400).json({ success: false, message: 'Batch already dispatched' });
     }
 
     if (!batch.emp_id) {
-      client.release();
       return res.status(400).json({ success: false, message: 'Batch has no assigned employee. Assign an EMP first.' });
     }
 
-    // Step 1: Fetch all PENDING orders for this batch's zone (today's cutoff window)
-    const { rows: orders } = await pool.query(
+    // Step 1: Fetch all dispatchable paid orders for this batch's zone (today's cutoff window)
+    const { rows: orders } = await client.query(
       `SELECT o.id AS order_id, da.lat, da.lng, da.address_line
        FROM orders o
        JOIN delivery_addresses da ON da.id = o.address_id
        WHERE o.zone_id = $1
-         AND o.status = 'PENDING'
-         AND o.payment_status = 'SUCCESS'
+         AND o.status = ANY($2::order_status[])
+         AND o.payment_status IN ('SUCCESS', 'INITIATED')
        ORDER BY o.created_at ASC`,
-      [batch.zone_id]
+      [batch.zone_id, dispatchableStatuses]
     );
 
     if (orders.length === 0) {
-      client.release();
       return res.status(400).json({ success: false, message: 'No pending orders found for this zone' });
     }
 
@@ -208,13 +291,12 @@ exports.dispatchBatch = async (req, res) => {
 
     // Step 10: Write active batch to Valkey
     try {
-      await valkey.set(`emp:${batch.emp_id}:active_batch`, id, 'EX', 86400);
+      // Keep mapping until batch completion; completion flow clears this key.
+      await valkey.set(`emp:${batch.emp_id}:active_batch`, id);
     } catch (valkeyErr) {
       console.warn('Failed to set active batch in Valkey:', valkeyErr.message);
       // Non-critical — don't fail the dispatch
     }
-
-    client.release();
 
     res.json({
       success: true,
@@ -227,8 +309,9 @@ exports.dispatchBatch = async (req, res) => {
       }
     });
   } catch (err) {
-    client.release();
     console.error('Dispatch batch error:', err);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  } finally {
+    client.release();
   }
 };
