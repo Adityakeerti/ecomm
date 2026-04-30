@@ -1,0 +1,5 @@
+-- =============================================================================
+-- 05_users.sql  — Deprecated
+-- Storefront auth has been migrated to the `customers` table (see 06_customers_auth.sql).
+-- This file is intentionally retained for compatibility/reference.
+-- =============================================================================

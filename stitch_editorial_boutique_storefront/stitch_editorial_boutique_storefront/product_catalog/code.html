@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Boutique Product Catalog</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Noto+Serif:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#1a1c1c",
+                        "secondary": "#5d5f5e",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#b8c3ff",
+                        "primary-fixed-dim": "#b8c3ff",
+                        "surface-container": "#eeeeee",
+                        "on-tertiary-fixed": "#380d00",
+                        "on-tertiary-container": "#ffece6",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#2f3131",
+                        "on-background": "#1a1c1c",
+                        "outline-variant": "#c4c5d9",
+                        "on-secondary-fixed-variant": "#454747",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbcf",
+                        "background": "#f9f9f9",
+                        "secondary-fixed-dim": "#c6c6c6",
+                        "primary-container": "#2e5bff",
+                        "surface": "#f9f9f9",
+                        "surface-container-low": "#f3f3f3",
+                        "on-secondary-container": "#636564",
+                        "surface-tint": "#124af0",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#0040e0",
+                        "on-tertiary-fixed-variant": "#812800",
+                        "surface-container-high": "#e8e8e8",
+                        "tertiary-container": "#c24100",
+                        "surface-variant": "#e2e2e2",
+                        "secondary-fixed": "#e2e2e2",
+                        "outline": "#747688",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#e2e2e2",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f9f9f9",
+                        "inverse-on-surface": "#f1f1f1",
+                        "tertiary": "#993100",
+                        "on-primary-fixed-variant": "#0035be",
+                        "surface-dim": "#dadada",
+                        "surface-container-highest": "#e2e2e2",
+                        "primary-fixed": "#dde1ff",
+                        "tertiary-fixed-dim": "#ffb59b",
+                        "on-surface": "#1a1c1c",
+                        "on-surface-variant": "#434656",
+                        "on-primary-container": "#efefff",
+                        "on-primary-fixed": "#001356"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "stack-sm": "16px",
+                        "margin-x": "48px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "stack-lg": "64px",
+                        "stack-md": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "h3": ["Noto Serif"],
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1": ["Noto Serif"],
+                        "h2": ["Noto Serif"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "1.5", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "h3": ["32px", { "lineHeight": "1.3", "letterSpacing": "0em", "fontWeight": "500" }],
+                        "button": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "h1": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "h2": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background antialiased min-h-screen flex flex-col pt-24 pb-20 md:pb-0">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 md:px-12 py-6 bg-white/90 backdrop-blur-md border-b border-stone-900 transition-all duration-200">
+<button class="text-stone-500 hover:opacity-70 transition-opacity scale-100 active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<div class="font-['Noto_Serif'] font-black italic text-2xl tracking-tighter text-stone-900 uppercase">
+            BOUTIQUE
+        </div>
+<button class="text-stone-500 hover:opacity-70 transition-opacity scale-100 active:scale-95 duration-200 relative">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">2</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-6 md:px-margin-x pt-stack-md pb-stack-lg">
+<!-- Filter Bar -->
+<div class="flex justify-between items-center mb-stack-md border-b border-stone-200 pb-base">
+<div class="flex gap-4 overflow-x-auto no-scrollbar w-full md:w-auto">
+<button class="flex-shrink-0 px-4 py-2 font-label-caps text-label-caps text-primary border border-primary bg-primary-fixed/20 rounded-none transition-colors">
+                    ALL
+                </button>
+<button class="flex-shrink-0 px-4 py-2 font-label-caps text-label-caps text-on-surface-variant border border-transparent hover:border-outline-variant rounded-none transition-colors">
+                    NEW ARRIVALS
+                </button>
+<button class="flex-shrink-0 px-4 py-2 font-label-caps text-label-caps text-on-surface-variant border border-transparent hover:border-outline-variant rounded-none transition-colors">
+                    TOPS
+                </button>
+<button class="flex-shrink-0 px-4 py-2 font-label-caps text-label-caps text-on-surface-variant border border-transparent hover:border-outline-variant rounded-none transition-colors">
+                    BOTTOMS
+                </button>
+<button class="flex-shrink-0 px-4 py-2 font-label-caps text-label-caps text-on-surface-variant border border-transparent hover:border-outline-variant rounded-none transition-colors">
+                    ACCESSORIES
+                </button>
+</div>
+<button class="hidden md:flex items-center gap-2 font-label-caps text-label-caps text-on-surface hover:opacity-70 transition-opacity pl-4 border-l border-stone-200 ml-4 flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]" data-icon="tune">tune</span>
+                FILTER &amp; SORT
+            </button>
+</div>
+<!-- Editorial Callout -->
+<div class="mb-stack-lg col-span-full border-b border-stone-900 pb-stack-md">
+<h2 class="font-h2 text-h2 text-on-surface max-w-2xl mb-stack-sm">The Spring Collection</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">Curated silhouettes designed for movement and structure. Elevate your everyday uniform with our latest arrivals.</p>
+</div>
+<!-- Product Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-gutter gap-y-stack-md">
+<!-- Product 1 -->
+<div class="group cursor-pointer border border-transparent hover:border-stone-900 transition-colors duration-300">
+<div class="relative aspect-[3/4] overflow-hidden bg-surface-container-low mb-base">
+<img alt="Minimalist structured white blazer on a hanger with soft natural lighting against a light grey background" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Minimalist structured white blazer on a hanger with soft natural lighting against a light grey background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3Kf7dTFEESEj6PquXKhiWbDCEZ0nUtABGH0eyS4Sabep6JhXUEbLYo31pUlO-jw-burU7gSDlqGcu-YZw_xYnrYRBAgaPh3KQH_bTCoAln4zTVniBidgP8IusNHZFzbMSoEJYoeJCw5nSdIuBhfKvrCqjDoAc4bJOdZuT1kJrB5Iz2f_RJl3THpJ-HUMivzIV5BzmxcUPGj9gcM5LTfdpk6vbQn65deAv2w4wquhlq2yNaEV5z5t2KQkryoDknyheMTHOM3XRFSIK"/>
+<div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+<button class="absolute bottom-4 left-4 right-4 bg-primary text-on-primary font-button text-button py-3 px-4 rounded-full opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-surface-tint">
+                        Quick Add
+                    </button>
+</div>
+<div class="px-2 pb-2">
+<h3 class="font-body-md text-body-md text-on-surface font-semibold mb-1">The Structured Blazer</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">$245</p>
+</div>
+</div>
+<!-- Product 2 -->
+<div class="group cursor-pointer border border-transparent hover:border-stone-900 transition-colors duration-300">
+<div class="relative aspect-[3/4] overflow-hidden bg-surface-container-low mb-base">
+<img alt="Close up of high quality woven linen fabric texture in a neutral beige tone" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Close up of high quality woven linen fabric texture in a neutral beige tone" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXirVJhBQgQSx1yHE2y3pzfVaVeXfbXAfd-LQNdqV1iv82rVbXROJ_T-kBYtAj268vHgLr-qd-I3zF2hqil9r9wbsaYrt9Vw82ko_PBJDSggKIdynMHNOekSl32N5SMSBq44wgW9rsvsNqYs1t2lYL67OzVFEwWAouIHqLi2Qa27PxeGWPuVwRV-ccYLwQ1RxGPZ6gnf2noiv473tX-c0blci1VqvCxqlzMMSMVRgdLFr1nfwYLUVJCJuS9OY0m8-aUTI2r4BKRhOr"/>
+<div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+<button class="absolute bottom-4 left-4 right-4 bg-primary text-on-primary font-button text-button py-3 px-4 rounded-full opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-surface-tint">
+                        Quick Add
+                    </button>
+</div>
+<div class="px-2 pb-2">
+<h3 class="font-body-md text-body-md text-on-surface font-semibold mb-1">Linen Trousers</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">$180</p>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="group cursor-pointer border border-transparent hover:border-stone-900 transition-colors duration-300">
+<div class="relative aspect-[3/4] overflow-hidden bg-surface-container-low mb-base">
+<div class="absolute top-2 left-2 bg-on-surface text-surface px-2 py-1 font-label-caps text-label-caps text-[10px] z-10">NEW</div>
+<img alt="Crisp white cotton oversized button down shirt folded neatly on a wooden surface with soft shadows" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Crisp white cotton oversized button down shirt folded neatly on a wooden surface with soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGD_xJJAiGRCnRNh_XkRQh0qdeKNl1-qcWbl-j9q65SCjohq3wisMDAYRbdoLgSDgA9yjIDzxN86yxprGUHdnU6PIolt59YJoDXS1ojAbHuIo9XijIsXzFblf-Pzc1PCr5LKD2PEjjpXZQg_S4UaLboYQTjFS-DN_y5ueH-_OTXqMcr_8vxb1CcPwnYO0vK7KZaY3jA-PH32Ebp7774Y6DUBMBBYP6o3yk5dqqtKM798zyBAHkOT9Lj9RnZWLyBjUOiReQLNsaQv_k"/>
+<div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+<button class="absolute bottom-4 left-4 right-4 bg-primary text-on-primary font-button text-button py-3 px-4 rounded-full opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-surface-tint">
+                        Quick Add
+                    </button>
+</div>
+<div class="px-2 pb-2">
+<h3 class="font-body-md text-body-md text-on-surface font-semibold mb-1">Oversized Poplin Shirt</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">$125</p>
+</div>
+</div>
+<!-- Product 4 -->
+<div class="group cursor-pointer border border-transparent hover:border-stone-900 transition-colors duration-300">
+<div class="relative aspect-[3/4] overflow-hidden bg-surface-container-low mb-base">
+<img alt="Minimalist black leather midi dress draped on a mannequin against a stark white wall" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Minimalist black leather midi dress draped on a mannequin against a stark white wall" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvgtxIkh6P-pIhh4ELjiLr9q5Y8BdUhbkLqCd6gDTmqNvdIFuLpD_62V3tK1R3oIlAklpAhhv-zqZYRIb2jWLNu1RkrNFsJG07Kj3QEsa2_ghLkB-CwjOj5ShJhBbi6GQ9cJMG4wn9floeNX_2quIEffeC25ZlJAQloJsNM_742lNII_vjK9YxJAbFF_dSXFc2yQws7tBG5EDGun-RPuLYY0A_B9a2BZ2PCaVJboOH5-0NZi6YA80bONDUw1JFTX--mWGvpDbhho9x"/>
+<div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+<button class="absolute bottom-4 left-4 right-4 bg-primary text-on-primary font-button text-button py-3 px-4 rounded-full opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-surface-tint">
+                        Quick Add
+                    </button>
+</div>
+<div class="px-2 pb-2">
+<h3 class="font-body-md text-body-md text-on-surface font-semibold mb-1">Architectural Midi Dress</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">$320</p>
+</div>
+</div>
+<!-- Product 5 -->
+<div class="group cursor-pointer border border-transparent hover:border-stone-900 transition-colors duration-300">
+<div class="relative aspect-[3/4] overflow-hidden bg-surface-container-low mb-base">
+<img alt="Elegant leather tote bag in a rich caramel tone resting on a marble plinth with dramatic directional lighting" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Elegant leather tote bag in a rich caramel tone resting on a marble plinth with dramatic directional lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjRtY6WcC7KVAPiFdhx5OxH9tXGSkTWGe6HKaylJ5Y0DbJNNUyXZXS1CSvqGdF7YcxGNnvdBHTb4CvUZ504sJ_teToyDHcqOza4J3IpriGJfy5Uk6b4d3ikH87s1Gm8HxY-4_XhnYxbXkg08IQi2ofyczYopviClwOiCZGgKMEvdUf7w3oih8XN2x0uNbHb8ED4DdJXWJMtn0b37LdyemuGxkHZDqixN6OxH7lWT0p0RFYZkK_vc54StRlbenKNVgF4CsNYwG11Xjd"/>
+<div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+<button class="absolute bottom-4 left-4 right-4 bg-primary text-on-primary font-button text-button py-3 px-4 rounded-full opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-surface-tint">
+                        Quick Add
+                    </button>
+</div>
+<div class="px-2 pb-2">
+<h3 class="font-body-md text-body-md text-on-surface font-semibold mb-1">The Essential Tote</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">$450</p>
+</div>
+</div>
+<!-- Product 6 -->
+<div class="group cursor-pointer border border-transparent hover:border-stone-900 transition-colors duration-300">
+<div class="relative aspect-[3/4] overflow-hidden bg-surface-container-low mb-base">
+<img alt="Pair of minimalist black leather mules with a sculptural block heel on a stark white background" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Pair of minimalist black leather mules with a sculptural block heel on a stark white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxsAMUTgDGGW5g3bflIFUNdVTbiW35JDmgf7ZA5DidvG_2y8i93Ryab09txfmZYXuYj5qCc8JmPGcoKQZKCojrerty3GTjUtjzavMGhsvqpBxAAHLVEK554ggX8JNoXec5LiClphp14KOxSptu_zU2uizDO8oZa6KnC1cKGW2Ckxd96LyQjmuPzxVl-jLuud5w5KqR_cLlB7f2JaoNrk6nNkI56l5bp-BhQJbhSKuftkN8DYT47sSOAhCDwfGvfEPjTO0bTifOhzK6"/>
+<div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+<button class="absolute bottom-4 left-4 right-4 bg-primary text-on-primary font-button text-button py-3 px-4 rounded-full opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-surface-tint">
+                        Quick Add
+                    </button>
+</div>
+<div class="px-2 pb-2">
+<h3 class="font-body-md text-body-md text-on-surface font-semibold mb-1">Sculptural Mules</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">$285</p>
+</div>
+</div>
+</div>
+<div class="mt-stack-lg flex justify-center border-t border-stone-200 pt-stack-md">
+<button class="border border-stone-900 rounded-full px-8 py-3 font-button text-button text-on-surface hover:bg-surface-container-low transition-colors duration-200">
+                LOAD MORE
+             </button>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 px-4 bg-white dark:bg-stone-950 border-t border-stone-900 dark:border-stone-100">
+<button class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 pt-2 hover:text-stone-900 dark:hover:text-stone-100 active:translate-y-0.5 transition-transform w-full">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#2E5BFF] border-t-2 border-[#2E5BFF] pt-2 hover:text-stone-900 dark:hover:text-stone-100 active:translate-y-0.5 transition-transform w-full">
+<span class="material-symbols-outlined mb-1" data-icon="storefront">storefront</span>
+</button>
+<button class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 pt-2 hover:text-stone-900 dark:hover:text-stone-100 active:translate-y-0.5 transition-transform w-full">
+<span class="material-symbols-outlined mb-1" data-icon="receipt_long">receipt_long</span>
+</button>
+<button class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 pt-2 hover:text-stone-900 dark:hover:text-stone-100 active:translate-y-0.5 transition-transform w-full">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+</button>
+</nav>
+</body></html>

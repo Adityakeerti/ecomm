@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Dynamic &amp; Structured Boutique - Account Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Noto+Serif:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#636564",
+                        "surface-container": "#eeeeee",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#0035be",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#993100",
+                        "inverse-primary": "#b8c3ff",
+                        "secondary-container": "#e2e2e2",
+                        "on-error-container": "#93000a",
+                        "background": "#f9f9f9",
+                        "secondary": "#5d5f5e",
+                        "on-primary-fixed": "#001356",
+                        "primary-fixed": "#dde1ff",
+                        "outline": "#747688",
+                        "on-tertiary-fixed-variant": "#812800",
+                        "inverse-surface": "#2f3131",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "on-secondary-fixed-variant": "#454747",
+                        "secondary-fixed": "#e2e2e2",
+                        "surface-tint": "#124af0",
+                        "on-primary-container": "#efefff",
+                        "surface-container-highest": "#e2e2e2",
+                        "inverse-on-surface": "#f1f1f1",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c4c5d9",
+                        "on-surface-variant": "#434656",
+                        "surface-container-low": "#f3f3f3",
+                        "on-tertiary-container": "#ffece6",
+                        "on-tertiary-fixed": "#380d00",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#c6c6c6",
+                        "surface-container-high": "#e8e8e8",
+                        "surface": "#f9f9f9",
+                        "on-surface": "#1a1c1c",
+                        "tertiary-fixed": "#ffdbcf",
+                        "primary-container": "#2e5bff",
+                        "surface-variant": "#e2e2e2",
+                        "on-background": "#1a1c1c",
+                        "tertiary-container": "#c24100",
+                        "tertiary-fixed-dim": "#ffb59b",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#dadada",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f9f9f9",
+                        "primary-fixed-dim": "#b8c3ff",
+                        "on-error": "#ffffff",
+                        "primary": "#0040e0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "stack-md": "32px",
+                        "margin-x": "48px",
+                        "base": "8px",
+                        "container-max": "1440px",
+                        "stack-sm": "16px",
+                        "stack-lg": "64px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "button": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Noto Serif"],
+                        "h3": ["Noto Serif"],
+                        "h1": ["Noto Serif"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "button": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "h2": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h3": ["32px", { "lineHeight": "1.3", "letterSpacing": "0em", "fontWeight": "500" }],
+                        "h1": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-20 md:pb-0 flex flex-col items-center">
+<!-- TopAppBar (Web & Mobile) -->
+<header class="flex justify-between items-center w-full px-6 py-4 md:px-12 max-w-[1440px] mx-auto docked full-width top-0 border-b-1 border-[#1A1C1C] border-b border-[#1A1C1C] bg-[#F9F9F9] dark:bg-neutral-900 flat no shadows text-[#2E5BFF]">
+<button class="text-[#1A1C1C] dark:text-neutral-400 hover:bg-[#2E5BFF] hover:text-white transition-colors duration-200 scale-95 duration-150 ease-in-out p-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-2xl font-black text-[#1A1C1C] dark:text-white font-['Noto_Serif'] font-['Noto_Serif'] font-bold tracking-tighter uppercase">THE BOUTIQUE</h1>
+<button class="text-[#1A1C1C] dark:text-neutral-400 hover:bg-[#2E5BFF] hover:text-white transition-colors duration-200 scale-95 duration-150 ease-in-out p-2">
+<span class="material-symbols-outlined">shopping_bag</span>
+</button>
+</header>
+<main class="w-full max-w-md mx-auto flex-1 flex flex-col bg-surface pt-6">
+<!-- User Header -->
+<section class="px-6 pb-6 border-b border-on-background">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 bg-surface-variant overflow-hidden border border-on-background">
+<img alt="User Profile Picture" class="w-full h-full object-cover" data-alt="close-up portrait of a woman looking directly at the camera, clean minimal background, soft even lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfcfkvo8hQBBW4E24W2k-CTUhi4RKi0pMWfj4IHY17_xiZMd1N9M2B8p49p1aNhzCJ53816GC0LUfapkoOnr7T5r4Gk1arvceE-m-pVKN9_hclaDdgw4vECvEjJrMToCARhG5tBBlZlWEGWHOqL1fUhfGkb4d6qLhewVFSJJMonWjapar0byhQp-AkTt5vh2EdFLRiuUa5qCLRQoY6pta0HjAl2JK6hNjwbSg7Y2dh_XulII-N5A24bwU_Bv3tXGJWeB_aVR7Hyq8P"/>
+</div>
+<div>
+<h2 class="font-h3 text-h3 text-on-background mb-1">Jane Doe</h2>
+<p class="font-body-md text-body-md text-secondary">Member since 2023</p>
+</div>
+</div>
+</section>
+<!-- Tabbed Navigation -->
+<nav class="border-b border-on-background bg-surface sticky top-0 z-10 flex overflow-x-auto hide-scrollbar">
+<button class="flex-1 py-4 px-4 relative min-w-fit font-label-caps text-label-caps text-primary-container">
+                PROFILE
+                <div class="absolute bottom-0 left-0 w-full h-[2px] bg-primary-container"></div>
+</button>
+<button class="flex-1 py-4 px-4 relative min-w-fit font-label-caps text-label-caps text-secondary hover:text-on-background transition-colors">
+                ORDERS
+            </button>
+<button class="flex-1 py-4 px-4 relative min-w-fit font-label-caps text-label-caps text-secondary hover:text-on-background transition-colors">
+                SETTINGS
+            </button>
+<button class="flex-1 py-4 px-4 relative min-w-fit font-label-caps text-label-caps text-secondary hover:text-on-background transition-colors">
+                SAVED
+            </button>
+</nav>
+<!-- Profile Content -->
+<section class="flex-1 overflow-y-auto">
+<!-- Bento Grid Metrics -->
+<div class="grid grid-cols-2 gap-[1px] bg-on-background border-b border-on-background">
+<div class="bg-surface p-6 flex flex-col justify-center items-center">
+<span class="font-h2 text-h2 text-on-background">12</span>
+<span class="font-label-caps text-label-caps text-secondary mt-2">TOTAL ORDERS</span>
+</div>
+<div class="bg-surface p-6 flex flex-col justify-center items-center">
+<span class="font-h2 text-h2 text-on-background">3</span>
+<span class="font-label-caps text-label-caps text-secondary mt-2">SAVED ITEMS</span>
+</div>
+</div>
+<!-- Personal Information Form -->
+<div class="px-6 py-8">
+<h3 class="font-h3 text-h3 text-on-background mb-8">Personal Information</h3>
+<form class="space-y-6">
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-secondary block">FULL NAME</label>
+<input class="w-full bg-transparent border-0 border-b border-on-background rounded-none px-0 py-2 font-body-lg text-body-lg text-on-background focus:ring-0 focus:border-primary-container transition-colors" type="text" value="Jane Doe"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-secondary block">EMAIL ADDRESS</label>
+<input class="w-full bg-transparent border-0 border-b border-on-background rounded-none px-0 py-2 font-body-lg text-body-lg text-on-background focus:ring-0 focus:border-primary-container transition-colors" type="email" value="jane.doe@example.com"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-secondary block">PHONE NUMBER</label>
+<input class="w-full bg-transparent border-0 border-b border-on-background rounded-none px-0 py-2 font-body-lg text-body-lg text-on-background focus:ring-0 focus:border-primary-container transition-colors" type="tel" value="+1 (555) 123-4567"/>
+</div>
+<div class="pt-8">
+<button class="w-full py-4 bg-primary-container text-on-primary font-button text-button rounded-full hover:bg-on-primary-fixed-variant transition-transform hover:scale-[1.02] active:scale-95 duration-150" type="button">
+                            UPDATE PROFILE
+                        </button>
+</div>
+</form>
+</div>
+<!-- Recent Activity Callout -->
+<div class="mx-6 mb-8 p-6 border border-on-background bg-surface-variant relative overflow-hidden group hover:border-primary-container transition-colors cursor-pointer">
+<div class="absolute top-0 right-0 w-16 h-16 bg-primary-container transform translate-x-8 -translate-y-8 rotate-45"></div>
+<span class="material-symbols-outlined text-primary-container mb-4 block" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<h4 class="font-h3 text-h3 text-on-background mb-2">Track Your Order</h4>
+<p class="font-body-md text-body-md text-secondary mb-4">Your recent purchase is on its way. View detailed tracking information.</p>
+<span class="font-label-caps text-label-caps text-primary-container flex items-center gap-1 group-hover:gap-2 transition-all">
+                    VIEW DETAILS <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</span>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-16 bg-white dark:bg-neutral-900 border-t border-[#1A1C1C] border-t-1 z-50 flat no shadows font-sans text-[10px] uppercase tracking-widest font-bold">
+<button class="flex flex-col items-center justify-center text-neutral-500 pt-3 hover:text-[#2E5BFF] Active: translate-y-[-2px] transition-transform">
+<span class="material-symbols-outlined mb-1">storefront</span>
+            Shop
+        </button>
+<button class="flex flex-col items-center justify-center text-neutral-500 pt-3 hover:text-[#2E5BFF] Active: translate-y-[-2px] transition-transform">
+<span class="material-symbols-outlined mb-1">explore</span>
+            Explore
+        </button>
+<button class="flex flex-col items-center justify-center text-[#2E5BFF] border-t-4 border-[#2E5BFF] pt-2 hover:text-[#2E5BFF] Active: translate-y-[-2px] transition-transform">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">person</span>
+            Account
+        </button>
+<button class="flex flex-col items-center justify-center text-neutral-500 pt-3 hover:text-[#2E5BFF] Active: translate-y-[-2px] transition-transform">
+<span class="material-symbols-outlined mb-1">local_mall</span>
+            Cart
+        </button>
+</nav>
+</body></html>

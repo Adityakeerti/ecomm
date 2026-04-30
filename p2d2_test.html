@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Full API Test Suite — Steps 2-9</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 22px;
+    }
+
+    h2 {
+      color: #38bdf8;
+      margin: 28px 0 10px;
+      border-bottom: 1px solid #1e3a5f;
+      padding-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 8px;
+      margin-bottom: 6px;
+      align-items: center;
+    }
+
+    input,
+    button,
+    select {
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e2e8f0;
+      padding: 7px 10px;
+      font-size: 13px;
+    }
+
+    button {
+      cursor: pointer;
+      background: #1d4ed8;
+      border: none;
+      font-weight: 600;
+      padding: 8px 16px;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button.mega {
+      background: linear-gradient(135deg, #059669, #0d9488);
+      font-size: 16px;
+      padding: 12px 28px;
+    }
+
+    button.mega:hover {
+      background: linear-gradient(135deg, #047857, #0f766e);
+    }
+
+    button.secondary {
+      background: #334155;
+    }
+
+    button.danger {
+      background: #b91c1c;
+    }
+
+    .mono {
+      font-family: Consolas, Menlo, Monaco, monospace;
+      font-size: 12px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 80px;
+      max-height: 500px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+
+    /* Results table */
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .results-table th {
+      text-align: left;
+      padding: 6px 10px;
+      background: #1e293b;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .results-table td {
+      padding: 5px 10px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .results-table tr:hover {
+      background: #1e293b44;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      min-width: 44px;
+      text-align: center;
+    }
+
+    .badge-pass {
+      background: #065f46;
+      color: #6ee7b7;
+    }
+
+    .badge-fail {
+      background: #7f1d1d;
+      color: #fca5a5;
+    }
+
+    .badge-skip {
+      background: #78350f;
+      color: #fde68a;
+    }
+
+    .badge-wait {
+      background: #1e3a5f;
+      color: #93c5fd;
+    }
+
+    .badge-run {
+      background: #312e81;
+      color: #a5b4fc;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    .step-label {
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .progress {
+      margin: 10px 0;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #059669, #10b981);
+      transition: width 0.3s;
+    }
+
+    .summary {
+      display: flex;
+      gap: 16px;
+      margin: 10px 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .summary span {
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+
+    .summary .pass {
+      background: #065f46;
+      color: #6ee7b7;
+    }
+
+    .summary .fail {
+      background: #7f1d1d;
+      color: #fca5a5;
+    }
+
+    .summary .total {
+      background: #1e293b;
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🧪 Full API Test Suite — Steps 2→9</h1>
+  <p class="subtitle">One-click end-to-end testing: Auth → Overview → Orders → Products → Zones/Staff → Dispatch →
+    Delivery → Returns</p>
+
+  <div class="card">
+    <div class="row"><label>Base URL</label><input id="baseUrl" value="http://localhost:4000" /></div>
+    <div class="row"><label>Admin Username</label><input id="username" value="superadmin" /></div>
+    <div class="row"><label>Admin Password</label><input id="password" type="password" value="admin123" /></div>
+    <div class="row"><label>Category ID</label><input id="categoryId" value="1" /></div>
+    <div class="row"><label>City ID</label><input id="cityId" value="1" /></div>
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <button class="mega" id="btnRunAll" onclick="runAllTests()">🚀 Run ALL Tests (Steps 2 → 9)</button>
+    &nbsp;
+    <button class="secondary" onclick="clearAll()">Clear</button>
+  </div>
+
+  <div class="progress">
+    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+  </div>
+  <div class="summary" id="summaryBar" style="display:none;">
+    <span class="total" id="sumTotal">0 tests</span>
+    <span class="pass" id="sumPass">0 passed</span>
+    <span class="fail" id="sumFail">0 failed</span>
+  </div>
+
+  <div class="card" style="overflow-x:auto;">
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th style="width:50px;">Step</th>
+          <th>Test</th>
+          <th style="width:60px;">Status</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+  </div>
+
+  <h2>Response Log</h2>
+  <pre id="log"></pre>
+
+  <script>
+    // ======================== STATE ========================
+    const S = {
+      token: null,
+      productId: null,
+      variantId: null,
+      zoneId: null,
+      cityId: null,
+      staffId1: null,
+      staffId2: null,
+      staffEmpId1: null,
+      batchId: null,
+      empUuid: null,
+      deliveryToken: null,
+      deliveryBatchId: null,
+      stopIds: [],
+      returnId: null,
+      testOrderIds: [],
+      testCustomerIds: [],
+    };
+
+    const logEl = document.getElementById('log');
+    function log(title, data) {
+      const c = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      logEl.textContent += `[${new Date().toLocaleTimeString()}] ${title}\n${c}\n\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    function clearAll() {
+      logEl.textContent = '';
+      document.getElementById('resultsBody').innerHTML = '';
+      document.getElementById('summaryBar').style.display = 'none';
+      document.getElementById('progressBar').style.width = '0%';
+    }
+
+    function getBase() { return document.getElementById('baseUrl').value.trim(); }
+
+    async function api(url, options = {}) {
+      const res = await fetch(url, options);
+      const text = await res.text();
+      let body;
+      try { body = JSON.parse(text); } catch { body = text; }
+      return { ok: res.ok, status: res.status, body };
+    }
+
+    async function sql(query, params = []) {
+      const r = await api(`${getBase()}/test/sql`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sql: query, params })
+      });
+      if (!r.ok || !r.body.success) throw new Error(r.body?.error || 'SQL failed');
+      return r.body.data;
+    }
+
+    function authHeaders() {
+      return { 'Authorization': `Bearer ${S.token}`, 'Content-Type': 'application/json' };
+    }
+    function deliveryHeaders() {
+      return { 'x-session-token': S.deliveryToken };
+    }
+
+    // ======================== TEST DEFINITIONS ========================
+    const TESTS = [
+      // Step 2: Admin Auth
+      {
+        step: 2, name: 'Login correct credentials → token', fn: async () => {
+          const r = await api(`${getBase()}/admin/auth/login`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: document.getElementById('username').value, password: document.getElementById('password').value })
+          });
+          if (!r.ok) return { pass: false, detail: `${r.status}: ${JSON.stringify(r.body)}` };
+          S.token = r.body.accessToken;
+          log('Step 2: Login', r.body);
+          return { pass: !!S.token, detail: S.token ? `token: ${S.token.slice(0, 20)}...` : 'No token returned' };
+        }
+      },
+      {
+        step: 2, name: 'Login wrong password → 401', fn: async () => {
+          const r = await api(`${getBase()}/admin/auth/login`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: 'superadmin', password: 'WRONG_PASSWORD' })
+          });
+          log('Step 2: Wrong password', r.body);
+          return { pass: r.status === 401, detail: `status=${r.status}` };
+        }
+      },
+      {
+        step: 2, name: 'GET /admin/overview without token → 401', fn: async () => {
+          const r = await api(`${getBase()}/admin/overview`);
+          log('Step 2: No token', { status: r.status });
+          return { pass: r.status === 401, detail: `status=${r.status}` };
+        }
+      },
+      {
+        step: 2, name: 'GET /admin/overview with valid token → 200', fn: async () => {
+          const r = await api(`${getBase()}/admin/overview`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+          log('Step 2: With token', { status: r.status });
+          return { pass: r.ok, detail: `status=${r.status}` };
+        }
+      },
+
+      // Step 3: Overview
+      {
+        step: 3, name: 'GET /admin/overview → stats present', fn: async () => {
+          const r = await api(`${getBase()}/admin/overview`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+          log('Step 3: Overview', r.body);
+          const d = r.body?.data || r.body;
+          return { pass: r.ok, detail: `orders_today=${d?.orders_today ?? d?.todayOrders ?? '?'}` };
+        }
+      },
+
+      // Step 5: Products & Inventory (before orders so we have product data)
+      {
+        step: 5, name: 'POST /admin/products → created', fn: async () => {
+          const r = await api(`${getBase()}/admin/products`, {
+            method: 'POST', headers: authHeaders(),
+            body: JSON.stringify({ name: `Test Product ${Date.now()}`, slug: `test-prod-${Date.now()}`, description: 'Auto test', base_price_paise: 99900, category_id: Number(document.getElementById('categoryId').value) })
+          });
+          log('Step 5: Create product', r.body);
+          if (r.body?.data?.id) S.productId = r.body.data.id;
+          return { pass: !!S.productId, detail: `id=${S.productId}` };
+        }
+      },
+      {
+        step: 5, name: 'POST variants → created', fn: async () => {
+          const r = await api(`${getBase()}/admin/products/${S.productId}/variants`, {
+            method: 'POST', headers: authHeaders(),
+            body: JSON.stringify({ size: 'L', colour: 'Black', sku: `SKU-${Date.now()}`, price_paise: 129900 })
+          });
+          log('Step 5: Add variant', r.body);
+          if (r.body?.data?.id) S.variantId = r.body.data.id;
+          return { pass: !!S.variantId, detail: `id=${S.variantId}` };
+        }
+      },
+      {
+        step: 5, name: 'PATCH restock → quantity updated', fn: async () => {
+          const r = await api(`${getBase()}/admin/inventory/${S.variantId}/restock`, {
+            method: 'PATCH', headers: authHeaders(),
+            body: JSON.stringify({ quantity_to_add: 50 })
+          });
+          log('Step 5: Restock', r.body);
+          return { pass: r.ok, detail: JSON.stringify(r.body?.data || r.body?.message) };
+        }
+      },
+      {
+        step: 5, name: 'PATCH toggle → is_active flips', fn: async () => {
+          const r = await api(`${getBase()}/admin/products/${S.productId}/toggle`, {
+            method: 'PATCH', headers: { 'Authorization': `Bearer ${S.token}` }
+          });
+          log('Step 5: Toggle product', r.body);
+          return { pass: r.ok, detail: `is_active=${r.body?.data?.is_active}` };
+        }
+      },
+
+      // Step 6: Zones, Cities, Staff
+      {
+        step: 6, name: 'POST /admin/cities → city exists', fn: async () => {
+          // First try listing existing cities
+          const list = await api(`${getBase()}/admin/cities`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+          if (list.body?.data?.length > 0) {
+            S.cityId = list.body.data[0].id;
+            log('Step 6: Using existing city', { id: S.cityId, name: list.body.data[0].name });
+            return { pass: true, detail: `Existing city: ${list.body.data[0].name} (id=${S.cityId})` };
+          }
+          const r = await api(`${getBase()}/admin/cities`, {
+            method: 'POST', headers: authHeaders(),
+            body: JSON.stringify({ name: `Test City ${Date.now()}`, state: 'Uttar Pradesh' })
+          });
+          log('Step 6: Create city', r.body);
+          if (r.body?.data?.id) S.cityId = r.body.data.id;
+          return { pass: !!S.cityId, detail: `id=${S.cityId}` };
+        }
+      },
+      {
+        step: 6, name: 'POST /admin/zones → zone created', fn: async () => {
+          const r = await api(`${getBase()}/admin/zones`, {
+            method: 'POST', headers: authHeaders(),
+            body: JSON.stringify({ city_id: Number(S.cityId || document.getElementById('cityId').value), label: `Auto Zone ${Date.now().toString(36)}`, center_lat: 27.1767, center_lng: 78.0081, radius_km: 6.5, min_order_count: 3, cutoff_time: '00:01:00' })
+          });
+          log('Step 6: Create zone', r.body);
+          if (r.body?.data?.id) S.zoneId = r.body.data.id;
+          return { pass: !!S.zoneId, detail: `id=${S.zoneId}` };
+        }
+      },
+      {
+        step: 6, name: 'PATCH /admin/zones/:id/toggle → flips', fn: async () => {
+          const r = await api(`${getBase()}/admin/zones/${S.zoneId}/toggle`, {
+            method: 'PATCH', headers: { 'Authorization': `Bearer ${S.token}` }
+          });
+          log('Step 6: Toggle zone', r.body);
+          // Toggle back so zone is active for dispatch
+          await api(`${getBase()}/admin/zones/${S.zoneId}/toggle`, {
+            method: 'PATCH', headers: { 'Authorization': `Bearer ${S.token}` }
+          });
+          return { pass: r.ok, detail: `toggled (restored to active)` };
+        }
+      },
+      {
+        step: 6, name: 'POST /admin/staff #1 → EMP-xxx-0001', fn: async () => {
+          const r = await api(`${getBase()}/admin/staff`, {
+            method: 'POST', headers: authHeaders(),
+            body: JSON.stringify({ full_name: `AutoStaff ${Date.now()}`, phone_number: `+91${String(Date.now()).slice(-10)}1`.slice(0, 15), zone_id: S.zoneId })
+          });
+          log('Step 6: Create staff #1', r.body);
+          if (r.body?.data?.id) { S.staffId1 = r.body.data.id; S.staffEmpId1 = r.body.data.emp_id; S.empUuid = r.body.data.id; }
+          return { pass: !!S.staffId1, detail: `emp_id=${S.staffEmpId1}` };
+        }
+      },
+      {
+        step: 6, name: 'POST /admin/staff #2 → sequential EMP', fn: async () => {
+          const r = await api(`${getBase()}/admin/staff`, {
+            method: 'POST', headers: authHeaders(),
+            body: JSON.stringify({ full_name: `AutoStaff2 ${Date.now()}`, phone_number: `+91${String(Date.now()).slice(-10)}2`.slice(0, 15), zone_id: S.zoneId })
+          });
+          log('Step 6: Create staff #2', r.body);
+          if (r.body?.data?.id) S.staffId2 = r.body.data.id;
+          const emp2 = r.body?.data?.emp_id || '';
+          return { pass: !!S.staffId2, detail: `emp_id=${emp2}` };
+        }
+      },
+      {
+        step: 6, name: 'PATCH /admin/staff/:id/toggle → flips', fn: async () => {
+          const r = await api(`${getBase()}/admin/staff/${S.staffId2}/toggle`, {
+            method: 'PATCH', headers: { 'Authorization': `Bearer ${S.token}` }
+          });
+          log('Step 6: Toggle staff #2', r.body);
+          return { pass: r.ok, detail: `is_active=${r.body?.data?.is_active}` };
+        }
+      },
+
+      // Step 7: Dispatch — create test data via SQL
+      {
+        step: 7, name: 'Create dispatch test data (SQL)', fn: async () => {
+          const ts = Date.now();
+          try {
+            // Get city_id from zone
+            const zoneInfo = await sql(`SELECT city_id FROM delivery_zones WHERE id = $1`, [S.zoneId]);
+            const cityId = zoneInfo[0].city_id;
+
+            // Create 5 customers
+            const custs = await sql(
+              `INSERT INTO customers (id, phone_number, full_name, email) VALUES
+         (gen_random_uuid(), $1, $6, $11),
+         (gen_random_uuid(), $2, $7, $12),
+         (gen_random_uuid(), $3, $8, $13),
+         (gen_random_uuid(), $4, $9, $14),
+         (gen_random_uuid(), $5, $10, $15)
+         RETURNING id, full_name`,
+              [`+91${String(ts).slice(-10)}1`.slice(0, 15), `+91${String(ts).slice(-10)}2`.slice(0, 15), `+91${String(ts).slice(-10)}3`.slice(0, 15), `+91${String(ts).slice(-10)}4`.slice(0, 15), `+91${String(ts).slice(-10)}5`.slice(0, 15),
+              `AutoA-${ts}`, `AutoB-${ts}`, `AutoC-${ts}`, `AutoD-${ts}`, `AutoE-${ts}`,
+              `a${ts}@t.com`, `b${ts}@t.com`, `c${ts}@t.com`, `d${ts}@t.com`, `e${ts}@t.com`]
+            );
+            S.testCustomerIds = custs.map(c => c.id);
+
+            const coords = [
+              { lat: 27.205, lng: 78.035, addr: 'Belanganj, NH2, Agra' },
+              { lat: 27.190, lng: 78.005, addr: 'Shahganj, MG Road, Agra' },
+              { lat: 27.162, lng: 78.040, addr: 'Fatehabad Road, Agra' },
+              { lat: 27.159, lng: 78.015, addr: 'Sadar Bazaar, Agra Cantt' },
+              { lat: 27.174, lng: 78.048, addr: 'Mehtab Bagh, Agra' },
+            ];
+
+            // Create addresses + orders one by one
+            S.testOrderIds = [];
+            for (let i = 0; i < 5; i++) {
+              const addr = await sql(
+                `INSERT INTO delivery_addresses (id, customer_id, address_line, city_id, pincode, lat, lng)
+           VALUES (gen_random_uuid(), $1, $2, $3, '282001', $4, $5) RETURNING id`,
+                [custs[i].id, coords[i].addr, cityId, coords[i].lat, coords[i].lng]
+              );
+              const ord = await sql(
+                `INSERT INTO orders (customer_id, address_id, zone_id, customer_display_id, status, total_paise, payment_status, payment_gateway)
+           VALUES ($1, $2, $3, $4, 'PENDING', $5, 'SUCCESS', 'PHONEPE') RETURNING id, order_number`,
+                [custs[i].id, addr[0].id, S.zoneId, `Auto-${custs[i].full_name}-ORD`, 50000 + Math.floor(Math.random() * 100000)]
+              );
+              S.testOrderIds.push(ord[0].id);
+            }
+
+            log('Step 7: Test data created', { customers: custs.length, orders: S.testOrderIds.length });
+            return { pass: S.testOrderIds.length === 5, detail: `5 customers, 5 addresses, 5 orders created` };
+          } catch (err) {
+            log('Step 7: SQL error', err.message);
+            return { pass: false, detail: err.message };
+          }
+        }
+      },
+      {
+        step: 7, name: 'GET /admin/dispatch/ready → zone appears', fn: async () => {
+          const r = await api(`${getBase()}/admin/dispatch/ready`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+          log('Step 7: Dispatch ready', r.body);
+          const zones = r.body?.data || [];
+          const myZone = zones.find(z => z.zone_id === S.zoneId);
+          if (myZone?.batch_id) S.batchId = myZone.batch_id;
+          return { pass: !!myZone, detail: myZone ? `batch_id=${S.batchId}, orders=${myZone.pending_order_count}` : 'Zone not found in ready list' };
+        }
+      },
+      {
+        step: 7, name: 'POST assign emp → batch assigned', fn: async () => {
+          const r = await api(`${getBase()}/admin/dispatch/batches/${S.batchId}/assign`, {
+            method: 'POST', headers: authHeaders(),
+            body: JSON.stringify({ emp_id: S.empUuid })
+          });
+          log('Step 7: Assign batch', r.body);
+          return { pass: r.ok, detail: r.body?.message || JSON.stringify(r.body) };
+        }
+      },
+      {
+        step: 7, name: 'POST dispatch batch → 5 stops', fn: async () => {
+          const r = await api(`${getBase()}/admin/dispatch/batches/${S.batchId}/dispatch`, {
+            method: 'POST', headers: { 'Authorization': `Bearer ${S.token}` }
+          });
+          log('Step 7: Dispatch batch', r.body);
+          const sc = r.body?.data?.stop_count;
+          return { pass: r.ok && sc >= 5, detail: `stop_count=${sc}` };
+        }
+      },
+
+      // Step 4: Orders (now we have dispatched orders)
+      {
+        step: 4, name: 'GET /admin/orders → list returned', fn: async () => {
+          const r = await api(`${getBase()}/admin/orders`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+          log('Step 4: List orders', { count: r.body?.data?.length });
+          return { pass: r.ok && Array.isArray(r.body?.data), detail: `${r.body?.data?.length} orders` };
+        }
+      },
+      {
+        step: 4, name: 'GET /admin/orders?status=DISPATCHED → filtered', fn: async () => {
+          const r = await api(`${getBase()}/admin/orders?status=DISPATCHED`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+          log('Step 4: Filtered orders', { count: r.body?.data?.length });
+          const allDispatched = (r.body?.data || []).every(o => o.status === 'DISPATCHED');
+          return { pass: r.ok && allDispatched, detail: `${r.body?.data?.length} dispatched orders` };
+        }
+      },
+      {
+        step: 4, name: 'GET /admin/orders/:id → single order', fn: async () => {
+          if (!S.testOrderIds[0]) return { pass: false, detail: 'No test orders' };
+          const r = await api(`${getBase()}/admin/orders/${S.testOrderIds[0]}`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+          log('Step 4: Single order', r.body);
+          return { pass: r.ok, detail: `order_number=${r.body?.data?.order_number}` };
+        }
+      },
+      {
+        step: 4, name: 'GET /admin/orders?page=1&limit=2 → pagination', fn: async () => {
+          const r = await api(`${getBase()}/admin/orders?page=1&limit=2`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+          log('Step 4: Pagination', { count: r.body?.data?.length, pagination: r.body?.pagination });
+          return { pass: r.ok && r.body?.data?.length <= 2, detail: `${r.body?.data?.length} results (limit 2)` };
+        }
+      },
+
+      // Step 8: Delivery Portal
+      {
+        step: 8, name: 'POST /delivery/auth/login valid → token', fn: async () => {
+          // Use the emp_id of staff #1 we created
+          const r = await api(`${getBase()}/delivery/auth/login`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ emp_id: S.staffEmpId1 })
+          });
+          log('Step 8: Delivery login', r.body);
+          if (r.body?.session_token) S.deliveryToken = r.body.session_token;
+          return { pass: !!S.deliveryToken, detail: `token=${S.deliveryToken?.slice(0, 12)}...` };
+        }
+      },
+      {
+        step: 8, name: 'POST /delivery/auth/login invalid → 401', fn: async () => {
+          const r = await api(`${getBase()}/delivery/auth/login`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ emp_id: 'FAKE_EMP_999' })
+          });
+          log('Step 8: Invalid login', { status: r.status });
+          return { pass: r.status === 401, detail: `status=${r.status}` };
+        }
+      },
+      {
+        step: 8, name: 'GET /delivery/batch/active → batch info', fn: async () => {
+          const r = await api(`${getBase()}/delivery/batch/active`, { headers: deliveryHeaders() });
+          log('Step 8: Active batch', r.body);
+          if (r.body?.data?.id) S.deliveryBatchId = r.body.data.id;
+          return { pass: !!S.deliveryBatchId, detail: `batch=${S.deliveryBatchId?.slice(0, 8)}..., stops=${r.body?.data?.total_stops}` };
+        }
+      },
+      {
+        step: 8, name: 'GET /delivery/batch/:id/stops → sequential unlock', fn: async () => {
+          const r = await api(`${getBase()}/delivery/batch/${S.deliveryBatchId}/stops`, { headers: deliveryHeaders() });
+          log('Step 8: Batch stops', r.body);
+          const stops = r.body?.data || [];
+          S.stopIds = stops.map(s => s.stop_id);
+          const stop1Unlocked = stops[0]?.is_unlocked === true;
+          const stop2Locked = stops.length > 1 ? stops[1]?.is_unlocked === false : true;
+          return { pass: stops.length >= 5 && stop1Unlocked && stop2Locked, detail: `${stops.length} stops, stop1_unlocked=${stop1Unlocked}, stop2_locked=${stop2Locked}` };
+        }
+      },
+      {
+        step: 8, name: 'Out-of-order delivery → 403', fn: async () => {
+          if (S.stopIds.length < 2) return { pass: false, detail: 'Not enough stops' };
+          const r = await api(`${getBase()}/delivery/stops/${S.stopIds[1]}/deliver`, {
+            method: 'PATCH', headers: deliveryHeaders()
+          });
+          log('Step 8: Out-of-order', { status: r.status });
+          return { pass: r.status === 403, detail: `status=${r.status} ${r.body?.message}` };
+        }
+      },
+      {
+        step: 8, name: 'Deliver all stops → batch_complete:true', fn: async () => {
+          let lastResult = null;
+          for (let i = 0; i < S.stopIds.length; i++) {
+            const r = await api(`${getBase()}/delivery/stops/${S.stopIds[i]}/deliver`, {
+              method: 'PATCH', headers: deliveryHeaders()
+            });
+            log(`Step 8: Deliver stop ${i + 1}`, r.body);
+            if (!r.ok) return { pass: false, detail: `Stop ${i + 1} failed: ${r.body?.message}` };
+            lastResult = r.body;
+          }
+          const complete = lastResult?.data?.batch_complete === true;
+          return { pass: complete, detail: `batch_complete=${complete}` };
+        }
+      },
+
+      // Step 9: Returns
+      {
+        step: 9, name: 'Create test return (SQL)', fn: async () => {
+          try {
+            // Find a DELIVERED order from our test set
+            const delivered = await sql(
+              `SELECT id, order_number, customer_id FROM orders WHERE status = 'DELIVERED' AND id = ANY($1::uuid[]) LIMIT 1`,
+              [S.testOrderIds]
+            );
+            if (delivered.length === 0) {
+              // Try any delivered order
+              const anyDel = await sql(`SELECT id, order_number, customer_id FROM orders WHERE status = 'DELIVERED' LIMIT 1`);
+              if (anyDel.length === 0) return { pass: false, detail: 'No DELIVERED orders found' };
+              delivered.push(anyDel[0]);
+            }
+            const o = delivered[0];
+            const ret = await sql(
+              `INSERT INTO returns (return_id, order_id, customer_id, reason) VALUES ($1, $2, $3, $4) RETURNING id, return_id`,
+              [`RET-${o.order_number}-A${Date.now() % 10000}`, o.id, o.customer_id, 'Item damaged during delivery (auto test)']
+            );
+            S.returnId = ret[0].id;
+            log('Step 9: Return created', ret[0]);
+            return { pass: !!S.returnId, detail: `return_id=${ret[0].return_id}` };
+          } catch (err) {
+            log('Step 9: SQL error', err.message);
+            return { pass: false, detail: err.message };
+          }
+        }
+      },
+      {
+        step: 9, name: 'GET /admin/returns → return listed', fn: async () => {
+          const r = await api(`${getBase()}/admin/returns`, { headers: { 'Authorization': `Bearer ${S.token}` } });
+          log('Step 9: List returns', r.body);
+          const found = (r.body?.data || []).some(ret => ret.id === S.returnId);
+          return { pass: r.ok && found, detail: `${r.body?.data?.length} returns, target found=${found}` };
+        }
+      },
+      {
+        step: 9, name: 'PATCH → APPROVED', fn: async () => {
+          const r = await api(`${getBase()}/admin/returns/${S.returnId}`, {
+            method: 'PATCH', headers: authHeaders(),
+            body: JSON.stringify({ status: 'APPROVED', admin_notes: 'Auto-test approved' })
+          });
+          log('Step 9: Approve', r.body);
+          return { pass: r.ok && r.body?.data?.status === 'APPROVED', detail: `status=${r.body?.data?.status}` };
+        }
+      },
+      {
+        step: 9, name: 'PATCH → REFUNDED (cascades order)', fn: async () => {
+          const r = await api(`${getBase()}/admin/returns/${S.returnId}`, {
+            method: 'PATCH', headers: authHeaders(),
+            body: JSON.stringify({ status: 'REFUNDED', admin_notes: 'Auto-test refund', refund_ref: 'REF-AUTO-' + Date.now() })
+          });
+          log('Step 9: Refund', r.body);
+          const cascaded = r.body?.data?.order_status_updated === 'REFUNDED';
+          return { pass: r.ok && cascaded, detail: `order_status_updated=${r.body?.data?.order_status_updated}` };
+        }
+      },
+    ];
+
+    // ======================== TEST RUNNER ========================
+    async function runAllTests() {
+      clearAll();
+      const btn = document.getElementById('btnRunAll');
+      btn.disabled = true;
+      btn.textContent = '⏳ Running...';
+
+      const tbody = document.getElementById('resultsBody');
+      const rows = [];
+
+      // Create all result rows
+      for (const t of TESTS) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+      <td><span class="step-label">Step ${t.step}</span></td>
+      <td>${t.name}</td>
+      <td><span class="badge badge-wait">WAIT</span></td>
+      <td class="small">—</td>`;
+        tbody.appendChild(tr);
+        rows.push(tr);
+      }
+
+      let passed = 0, failed = 0;
+      const bar = document.getElementById('progressBar');
+      const summaryBar = document.getElementById('summaryBar');
+      summaryBar.style.display = 'flex';
+
+      for (let i = 0; i < TESTS.length; i++) {
+        const t = TESTS[i];
+        const tr = rows[i];
+        tr.children[2].innerHTML = '<span class="badge badge-run">RUN</span>';
+        tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        let result;
+        try {
+          result = await t.fn();
+        } catch (err) {
+          result = { pass: false, detail: `Error: ${err.message}` };
+          log(`ERROR in "${t.name}"`, err.message);
+        }
+
+        if (result.pass) {
+          passed++;
+          tr.children[2].innerHTML = '<span class="badge badge-pass">PASS</span>';
+        } else {
+          failed++;
+          tr.children[2].innerHTML = '<span class="badge badge-fail">FAIL</span>';
+        }
+        tr.children[3].textContent = result.detail || '';
+
+        // Update progress
+        const pct = Math.round(((i + 1) / TESTS.length) * 100);
+        bar.style.width = pct + '%';
+        document.getElementById('sumTotal').textContent = `${i + 1}/${TESTS.length} tests`;
+        document.getElementById('sumPass').textContent = `${passed} passed`;
+        document.getElementById('sumFail').textContent = `${failed} failed`;
+      }
+
+      btn.disabled = false;
+      btn.textContent = failed === 0 ? '✅ All Passed! Run Again?' : `⚠️ ${failed} Failed — Run Again?`;
+      log('=== COMPLETE ===', `${passed} passed, ${failed} failed out of ${TESTS.length} tests`);
+    }
+  </script>
+</body>
+
+</html>

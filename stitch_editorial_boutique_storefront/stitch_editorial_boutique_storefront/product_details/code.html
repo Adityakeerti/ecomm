@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Boutique - Product Detail</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Noto+Serif:ital,wght@0,500;0,600;0,700;0,900;1,900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed": "#1a1c1c",
+                      "secondary": "#5d5f5e",
+                      "on-error-container": "#93000a",
+                      "inverse-primary": "#b8c3ff",
+                      "primary-fixed-dim": "#b8c3ff",
+                      "surface-container": "#eeeeee",
+                      "on-tertiary-fixed": "#380d00",
+                      "on-tertiary-container": "#ffece6",
+                      "on-error": "#ffffff",
+                      "inverse-surface": "#2f3131",
+                      "on-background": "#1a1c1c",
+                      "outline-variant": "#c4c5d9",
+                      "on-secondary-fixed-variant": "#454747",
+                      "error-container": "#ffdad6",
+                      "tertiary-fixed": "#ffdbcf",
+                      "background": "#f9f9f9",
+                      "secondary-fixed-dim": "#c6c6c6",
+                      "primary-container": "#2e5bff",
+                      "surface": "#f9f9f9",
+                      "surface-container-low": "#f3f3f3",
+                      "on-secondary-container": "#636564",
+                      "surface-tint": "#124af0",
+                      "on-primary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "primary": "#0040e0",
+                      "on-tertiary-fixed-variant": "#812800",
+                      "surface-container-high": "#e8e8e8",
+                      "tertiary-container": "#c24100",
+                      "surface-variant": "#e2e2e2",
+                      "secondary-fixed": "#e2e2e2",
+                      "outline": "#747688",
+                      "error": "#ba1a1a",
+                      "secondary-container": "#e2e2e2",
+                      "on-secondary": "#ffffff",
+                      "surface-bright": "#f9f9f9",
+                      "inverse-on-surface": "#f1f1f1",
+                      "tertiary": "#993100",
+                      "on-primary-fixed-variant": "#0035be",
+                      "surface-dim": "#dadada",
+                      "surface-container-highest": "#e2e2e2",
+                      "primary-fixed": "#dde1ff",
+                      "tertiary-fixed-dim": "#ffb59b",
+                      "on-surface": "#1a1c1c",
+                      "on-surface-variant": "#434656",
+                      "on-primary-container": "#efefff",
+                      "on-primary-fixed": "#001356"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "8px",
+                      "stack-sm": "16px",
+                      "margin-x": "16px",
+                      "gutter": "16px",
+                      "container-max": "1440px",
+                      "stack-lg": "64px",
+                      "stack-md": "32px"
+              },
+              "fontFamily": {
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "h3": [
+                              "Noto Serif"
+                      ],
+                      "button": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "h1": [
+                              "Noto Serif"
+                      ],
+                      "h2": [
+                              "Noto Serif"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "letterSpacing": "0em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h3": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "letterSpacing": "0em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "button": [
+                              "14px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "0em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h1": [
+                              "40px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "h2": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+      overflow-x: hidden;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 py-4 bg-white/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800">
+<button class="hover:opacity-70 transition-opacity scale-100 active:scale-95 duration-200 p-2">
+<span class="material-symbols-outlined text-stone-500 dark:text-stone-400" data-icon="search" style="font-variation-settings: 'FILL' 0;">search</span>
+</button>
+<div class="font-['Noto_Serif'] font-black italic text-xl tracking-tighter text-stone-900 dark:text-stone-50">
+            BOUTIQUE
+        </div>
+<button class="hover:opacity-70 transition-opacity scale-100 active:scale-95 duration-200 p-2 relative" onclick="document.getElementById('cart-drawer').classList.toggle('translate-x-full')">
+<span class="material-symbols-outlined text-stone-500 dark:text-stone-400" data-icon="shopping_bag" style="font-variation-settings: 'FILL' 0;">shopping_bag</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-20 pb-32 max-w-container-max mx-auto px-4 md:px-margin-x">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-1 mb-6 text-secondary font-label-caps text-[10px] md:text-label-caps uppercase tracking-widest overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
+<a class="hover:text-primary transition-colors shrink-0" href="#">Women</a>
+<span class="material-symbols-outlined text-[14px] shrink-0">chevron_right</span>
+<a class="hover:text-primary transition-colors shrink-0" href="#">Outerwear</a>
+<span class="material-symbols-outlined text-[14px] shrink-0">chevron_right</span>
+<span class="text-on-background shrink-0">Trench Coats</span>
+</nav>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-gutter relative items-start">
+<!-- Image Gallery (Editorial Bento Grid) -->
+<section class="lg:col-span-8 grid grid-cols-2 gap-2 md:gap-base w-full">
+<div class="col-span-2 aspect-[4/5] bg-surface-container-high relative overflow-hidden">
+<img alt="Model wearing a structured camel trench coat against a concrete wall with sharp shadows" class="w-full h-full object-cover" data-alt="Fashion editorial shot of a woman wearing a minimalist architectural camel wool coat, stark concrete background, hard direct sunlight, high contrast" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBk0vmaoIHGGyPtzoq3PCN5oMQAj9_si4J1GOdg8WhN0Skzs3xV_pdL_DcicF9zvTl9z9__2GpgCOC7Hktqz8-fLrh5s2SSs5M30vFzvlOcn9M_pQZzAXhklzhSDtC6fjaUt9mxIM2uJ3GXwyQxFOFNcdNtK1eSDUHpBqlItL30LO99BkWLniCZPijfi4T_pZPvKRU05KPjIFg60HEeLOMGKvPhbwtuAfO7Eim7_XZShMhIABTNjUMogCWsbtPnzorfK8B5MJfCl3gV"/>
+</div>
+<div class="aspect-square bg-surface-container-high relative overflow-hidden">
+<img alt="Close up of structural lapel details on trench coat" class="w-full h-full object-cover" data-alt="Macro photography of heavy wool fabric texture, sharp collar lapel of a tailored coat, neutral natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8Xgx8LFY5yaqyqkZiBZmeXGz2LMow6NQg2QnMfwFs3xVKIzLX4X-pV7eja10TXJNFSdS3LzOI_-hLc5TFz_c-afGFd_ysDXIqAAY8K25y14YXnNDkf3hAQndSE4i92Sv79c21xNVDyaQYVCtw67QetUpJ1xGFq5_TZ3z5I6tTanm7XMKH3gjkXhOcj_dOzYAUcBYucgcNTqoiFE5e9TW7QX76tfMb7HfdLtN9sc6vklQDzsjl8-ooZa45qZmo9Xowjrj3QAYdHzL0"/>
+</div>
+<div class="aspect-square bg-surface-container-high relative overflow-hidden">
+<img alt="Back view of trench coat showing structured belt" class="w-full h-full object-cover" data-alt="Editorial back view of a woman walking away in a structured long coat, capturing movement and the rigid line of a geometric belt, street style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQDwpygBzUv74Iwu58Z_OM0e2sKgSpIy3wxBcY8KJqlOy25im_o2ovebtNuhT6UGYNHcuKT5hDAxtsqBQugb35dZbUyetGoG51fPy6nTcRVxgcT5xU6LQtFEKyPiThj4TJ6vTQ-MA7Qx4__7y-TcWrxoH7_tg8myJUzCkqZZ3FOqnaikx1lSWpz13HC--s29ULKW26-ThQtF43wppBinrtm3CHZ_PuUXoJInCl42IobvgRVpue96ihbk7LrGRMhnlC7hsgHBPINa0G"/>
+</div>
+</section>
+<!-- Product Details Sticky Panel -->
+<section class="lg:col-span-4 lg:sticky lg:top-[100px] flex flex-col gap-6 md:gap-stack-md pt-4 md:pt-0 w-full">
+<div class="border-b border-on-background/20 pb-4 md:pb-stack-sm flex flex-col gap-2">
+<h1 class="font-h2 text-h2 text-on-background uppercase tracking-tight">The Architectural Trench</h1>
+<p class="font-body-lg text-body-lg text-secondary">$1,250 USD</p>
+</div>
+<div class="font-body-md text-body-md text-on-background leading-relaxed">
+                    A masterclass in structural tailoring. Crafted from dense, high-tension gabardine, this piece features rigid shoulders and mathematically precise lapels designed to cast decisive shadows.
+                </div>
+<form class="flex flex-col gap-6 md:gap-stack-sm w-full">
+<!-- Color Selection -->
+<div class="flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Color: Camel</span>
+<div class="flex gap-4">
+<label class="cursor-pointer relative">
+<input checked="" class="peer sr-only" name="color" type="radio" value="camel"/>
+<div class="w-8 h-8 bg-[#C19A6B] border border-transparent peer-checked:border-on-background peer-checked:p-1 transition-all"></div>
+</label>
+<label class="cursor-pointer relative">
+<input class="peer sr-only" name="color" type="radio" value="charcoal"/>
+<div class="w-8 h-8 bg-[#333333] border border-transparent peer-checked:border-on-background peer-checked:p-1 transition-all"></div>
+</label>
+</div>
+</div>
+<!-- Size Selection -->
+<div class="flex flex-col gap-2 w-full">
+<div class="flex justify-between items-end">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Size</span>
+<a class="font-label-caps text-label-caps text-primary uppercase underline hover:opacity-70" href="#">Size Guide</a>
+</div>
+<div class="grid grid-cols-4 gap-2 w-full">
+<label class="cursor-pointer">
+<input class="peer sr-only" name="size" type="radio" value="0"/>
+<div class="py-3 text-center border border-on-background/30 font-body-md text-body-md peer-checked:bg-on-background peer-checked:text-surface transition-colors">0</div>
+</label>
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="size" type="radio" value="2"/>
+<div class="py-3 text-center border border-on-background/30 font-body-md text-body-md peer-checked:bg-on-background peer-checked:text-surface transition-colors">2</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="size" type="radio" value="4"/>
+<div class="py-3 text-center border border-on-background/30 font-body-md text-body-md peer-checked:bg-on-background peer-checked:text-surface transition-colors">4</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="size" type="radio" value="6"/>
+<div class="py-3 text-center border border-on-background/30 font-body-md text-body-md peer-checked:bg-on-background peer-checked:text-surface transition-colors opacity-50">6</div>
+</label>
+</div>
+</div>
+<!-- Desktop Actions (Hidden on small mobile if bottom bar takes over) -->
+<div class="hidden md:flex flex-col gap-4 mt-4 w-full">
+<button class="w-full py-4 bg-primary text-on-primary rounded-full font-button text-button uppercase tracking-widest hover:bg-primary/90 transition-colors" type="button">
+                            Add to Cart
+                        </button>
+<button class="w-full py-4 bg-transparent border border-on-background text-on-background rounded-full font-button text-button uppercase tracking-widest hover:bg-surface-container-high transition-colors" type="button">
+                            Buy Now
+                        </button>
+</div>
+</form>
+<!-- Accordions -->
+<div class="flex flex-col border-t border-on-background/20 mt-6 w-full">
+<div class="py-4 border-b border-on-background/20 flex justify-between items-center cursor-pointer group">
+<span class="font-button text-button uppercase tracking-widest text-on-background">Details &amp; Care</span>
+<span class="material-symbols-outlined text-secondary group-hover:text-on-background transition-colors">add</span>
+</div>
+<div class="py-4 border-b border-on-background/20 flex justify-between items-center cursor-pointer group">
+<span class="font-button text-button uppercase tracking-widest text-on-background">Shipping &amp; Returns</span>
+<span class="material-symbols-outlined text-secondary group-hover:text-on-background transition-colors">add</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Sticky Bottom Bar (Mobile/Tablet Focused) -->
+<div class="fixed bottom-0 left-0 w-full z-40 bg-white/95 backdrop-blur-md border-t border-stone-200 dark:border-stone-800 md:hidden px-4 py-4 flex gap-4 items-center safe-area-pb shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+<div class="flex-1">
+<div class="font-h3 text-h3 text-on-background text-lg">$1,250</div>
+</div>
+<button class="flex-[2] py-3 bg-primary text-on-primary rounded-full font-button text-button uppercase tracking-widest active:scale-95 transition-transform text-center shadow-md">
+            Add to Cart
+        </button>
+</div>
+<!-- Navigation Drawer (YOUR BAG) -->
+<aside class="fixed inset-y-0 right-0 z-[70] flex flex-col shadow-2xl h-full w-full sm:w-[400px] border-l-0 sm:border-l border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 translate-x-full transition-transform ease-in-out duration-300" id="cart-drawer">
+<div class="flex flex-col h-full w-full">
+<header class="p-6 md:p-8 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center">
+<h2 class="font-['Noto_Serif'] font-black italic text-xl md:text-2xl text-primary">YOUR BAG</h2>
+<button class="hover:opacity-70 transition-opacity p-2" onclick="document.getElementById('cart-drawer').classList.add('translate-x-full')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</header>
+<div class="flex-1 p-6 md:p-8 overflow-y-auto flex flex-col gap-8 w-full">
+<!-- Empty state or items would go here -->
+<p class="font-body-md text-stone-600 dark:text-stone-400">Your bag is currently empty.</p>
+</div>
+<nav class="flex flex-col p-6 md:p-8 gap-4 border-t border-stone-200 dark:border-stone-800 w-full">
+<a class="flex items-center justify-center gap-2 p-4 text-white bg-primary hover:bg-primary/90 transition-colors font-button text-button uppercase rounded-full w-full text-center" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="shopping_cart_checkout">shopping_cart_checkout</span>
+                    Checkout Now
+                </a>
+<a class="flex items-center justify-center gap-2 p-4 text-stone-900 dark:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-900 transition-colors font-button text-button uppercase rounded-full border border-stone-200 dark:border-stone-800 w-full text-center" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="favorite">favorite</span>
+                    View Saved Items
+                </a>
+<a class="flex items-center justify-center gap-2 p-4 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors font-button text-button uppercase w-full text-center" href="#" onclick="document.getElementById('cart-drawer').classList.add('translate-x-full')">
+<span class="material-symbols-outlined text-[18px]" data-icon="arrow_back">arrow_back</span>
+                    Continue Shopping
+                </a>
+</nav>
+</div>
+</aside>
+<!-- Overlay for Drawer -->
+<div class="fixed inset-0 bg-black/50 z-[60] hidden transition-opacity" id="drawer-overlay" onclick="document.getElementById('cart-drawer').classList.add('translate-x-full')"></div>
+</body></html>

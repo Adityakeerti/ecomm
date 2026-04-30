@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+node_modules
 pnp.js
 .pnp.js
 
@@ -12,10 +13,14 @@ dist/
 
 # Environment variables
 .env
+backend/.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Frontend build output
+frontend/.next/
 
 # Logs
 npm-debug.log*

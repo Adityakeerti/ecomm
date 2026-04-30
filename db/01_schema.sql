@@ -4,7 +4,7 @@
 -- =============================================================================
 -- Design principles:
 --   • BCNF throughout — no transitive dependencies
---   • phone_number is the customer anchor (no auth/accounts)
+--   • customers support both phone-first checkout and optional account auth
 --   • JSONB used only for truly schemaless/flexible data
 --   • Enums for all finite state machines
 --   • Indexes designed for the actual query patterns of this platform
@@ -95,7 +95,7 @@ CREATE TABLE delivery_zones (
     is_active           BOOLEAN         NOT NULL DEFAULT TRUE,
     -- Dispatch thresholds (both must be met to trigger READY)
     min_order_count     SMALLINT        NOT NULL DEFAULT 5,
-    cutoff_time         TIME            NOT NULL DEFAULT '14:00:00', -- daily time window cutoff
+    cutoff_time         TIME            NOT NULL DEFAULT '08:00:00', -- daily time window cutoff
     created_at          TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
 
@@ -131,6 +131,7 @@ CREATE TABLE products (
     slug            VARCHAR(200)    NOT NULL UNIQUE,   -- used in Instagram link URL
     description     TEXT,
     base_price_paise BIGINT         NOT NULL,          -- price in paise (₹899 = 89900)
+    image_url       VARCHAR(500),
     instagram_post_url VARCHAR(500),                   -- reference link
     is_active       BOOLEAN         NOT NULL DEFAULT TRUE,
     meta            JSONB,                             -- flexible: tags, material, care instructions etc.
@@ -211,23 +212,27 @@ CREATE INDEX idx_cart_expiry  ON cart_sessions(expires_at);  -- for cleanup job
 
 -- ---------------------------------------------------------------------------
 -- 8. CUSTOMERS
--- No auth. Phone number is the anchor.
--- A "customer" record is created/upserted on first successful order.
+-- Supports guest checkout (phone) and optional email/password login.
 -- ---------------------------------------------------------------------------
 CREATE TABLE customers (
     id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
-    phone_number    VARCHAR(15)     NOT NULL UNIQUE,    -- E.164 format: +919876543210
+    phone_number    VARCHAR(15)     UNIQUE,             -- E.164 format: +919876543210 (nullable for email-only accounts)
     full_name       VARCHAR(200)    NOT NULL,           -- from last order (updated on each order)
     email           VARCHAR(255),
+    password_hash   TEXT,                               -- bcrypt hash for account login
+    saved_addresses JSONB           NOT NULL DEFAULT '[]'::jsonb,
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW()
 );
 
-COMMENT ON TABLE customers IS 'Upserted on each order. No passwords, no sessions. Phone is the identity.';
+COMMENT ON TABLE customers IS 'Unified customer table for checkout identities and optional storefront account auth.';
 COMMENT ON COLUMN customers.full_name IS 'Taken from most recent order — always kept current';
+COMMENT ON COLUMN customers.password_hash IS 'bcrypt hash; NULL for guest/phone-only customer records';
+COMMENT ON COLUMN customers.saved_addresses IS 'Array of saved delivery addresses for storefront checkout autofill. Max 20 entries.';
 
 CREATE INDEX idx_customers_phone ON customers(phone_number);
 CREATE INDEX idx_customers_email ON customers(email) WHERE email IS NOT NULL;
+CREATE UNIQUE INDEX uq_customers_email_ci ON customers(LOWER(email)) WHERE email IS NOT NULL;
 
 -- ---------------------------------------------------------------------------
 -- 9. DELIVERY ADDRESSES
@@ -238,6 +243,7 @@ CREATE TABLE delivery_addresses (
     id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
     customer_id     UUID            NOT NULL REFERENCES customers(id),
     address_line    TEXT            NOT NULL,
+    landmark        VARCHAR(255),
     city_id         SMALLINT        REFERENCES cities(id),
     pincode         VARCHAR(10),
     lat             NUMERIC(10, 7),                     -- from browser GPS at checkout
@@ -246,6 +252,7 @@ CREATE TABLE delivery_addresses (
 );
 
 CREATE INDEX idx_addresses_customer ON delivery_addresses(customer_id);
+COMMENT ON COLUMN delivery_addresses.landmark IS 'Nearby landmark for easy navigation by delivery staff';
 
 -- ---------------------------------------------------------------------------
 -- 10. ORDERS
@@ -571,6 +578,7 @@ SELECT
     c.full_name          AS customer_name,
     c.phone_number       AS customer_phone,
     da.address_line,
+    da.landmark,
     da.lat,
     da.lng,
     o.total_paise,
@@ -590,7 +598,7 @@ JOIN product_variants pv    ON pv.id = oi.variant_id
 JOIN products p             ON p.id = pv.product_id
 GROUP BY bs.id, bs.batch_id, bs.stop_number, bs.status,
          o.order_number, o.customer_display_id, c.full_name,
-         c.phone_number, da.address_line, da.lat, da.lng, o.total_paise;
+         c.phone_number, da.address_line, da.landmark, da.lat, da.lng, o.total_paise;
 
 -- Storefront: product listing with stock status
 CREATE VIEW v_product_listing AS
@@ -600,6 +608,7 @@ SELECT
     p.slug,
     p.description,
     p.base_price_paise,
+    p.image_url,
     p.instagram_post_url,
     cat.name             AS category,
     JSON_AGG(
@@ -619,7 +628,7 @@ JOIN product_variants pv     ON pv.product_id = p.id AND pv.is_active = TRUE
 JOIN inventory inv           ON inv.variant_id = pv.id
 WHERE p.is_active = TRUE
 GROUP BY p.id, p.name, p.slug, p.description, p.base_price_paise,
-         p.instagram_post_url, cat.name;
+         p.image_url, p.instagram_post_url, cat.name;
 
 -- Admin: dispatch readiness — zones where batch conditions are both met
 CREATE VIEW v_dispatch_ready AS
@@ -667,7 +676,7 @@ INSERT INTO categories (name, slug) VALUES
 -- 05. product_variants      — size/colour variants per product
 -- 06. inventory             — stock per variant (quantity + reserved)
 -- 07. cart_sessions         — 15-min payment hold, Valkey-backed
--- 08. customers             — phone-anchored, no auth
+-- 08. customers             — checkout identity + optional account auth
 -- 09. delivery_addresses    — extracted address (BCNF), includes GPS coords
 -- 10. orders                — core order table
 -- 11. order_items           — line items with price snapshot
